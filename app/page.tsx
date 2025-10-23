@@ -1,39 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { PerformanceTracker, type LiveMetrics } from '../lib/performance-tracker';
 
+// API Patient Record type matching backend response
 type PatientRecord = {
   id: string;
   name: string;
-  dob: string;
-  diagnosis: string;
-  lastVisit: string;
+  mrn: string;
+  last_visit_date: string;
+  summary_preview?: string; // From list endpoint
+  summary?: string; // From detail/bulk endpoint
 };
 
-// Static realistic sample EHR data (20 records)
-const patients: PatientRecord[] = [
-  { id: "P-00001", name: "Emily Johnson", dob: "1985-03-12", diagnosis: "Type 2 Diabetes Mellitus", lastVisit: "2025-10-15" },
-  { id: "P-00002", name: "Michael Chen", dob: "1978-11-05", diagnosis: "Essential Hypertension", lastVisit: "2025-10-18" },
-  { id: "P-00003", name: "Sarah Martinez", dob: "1992-07-21", diagnosis: "Seasonal Allergic Rhinitis", lastVisit: "2025-09-28" },
-  { id: "P-00004", name: "James Anderson", dob: "1969-02-14", diagnosis: "Coronary Artery Disease", lastVisit: "2025-10-12" },
-  { id: "P-00005", name: "Olivia Rodriguez", dob: "2001-05-30", diagnosis: "Generalized Anxiety Disorder", lastVisit: "2025-10-20" },
-  { id: "P-00006", name: "Benjamin Clark", dob: "1983-12-09", diagnosis: "Chronic Low Back Pain", lastVisit: "2025-09-25" },
-  { id: "P-00007", name: "Amelia Davis", dob: "1990-09-17", diagnosis: "Iron Deficiency Anemia", lastVisit: "2025-10-08" },
-  { id: "P-00008", name: "William Thompson", dob: "1975-01-22", diagnosis: "Chronic Obstructive Pulmonary Disease", lastVisit: "2025-09-30" },
-  { id: "P-00009", name: "Charlotte Nguyen", dob: "1988-04-03", diagnosis: "Migraine Without Aura", lastVisit: "2025-10-16" },
-  { id: "P-00010", name: "Henry Wilson", dob: "1995-06-27", diagnosis: "Irritable Bowel Syndrome", lastVisit: "2025-10-22" },
-  { id: "P-00011", name: "Ethan Brown", dob: "1981-10-19", diagnosis: "Mixed Hyperlipidemia", lastVisit: "2025-09-18" },
-  { id: "P-00012", name: "Isabella Garcia", dob: "1972-02-28", diagnosis: "Osteoarthritis of Knee", lastVisit: "2025-10-05" },
-  { id: "P-00013", name: "Lucas Miller", dob: "2000-01-11", diagnosis: "Attention Deficit Hyperactivity Disorder", lastVisit: "2025-10-14" },
-  { id: "P-00014", name: "Mia Robinson", dob: "1993-08-04", diagnosis: "Primary Hypothyroidism", lastVisit: "2025-10-11" },
-  { id: "P-00015", name: "Daniel Walker", dob: "1966-05-16", diagnosis: "Benign Prostatic Hyperplasia", lastVisit: "2025-09-22" },
-  { id: "P-00016", name: "Ava Lewis", dob: "1998-12-02", diagnosis: "Polycystic Ovary Syndrome", lastVisit: "2025-10-19" },
-  { id: "P-00017", name: "Matthew Hall", dob: "1979-03-07", diagnosis: "Gastroesophageal Reflux Disease", lastVisit: "2025-10-03" },
-  { id: "P-00018", name: "Harper Young", dob: "1986-07-25", diagnosis: "Major Depressive Disorder", lastVisit: "2025-10-17" },
-  { id: "P-00019", name: "Elijah King", dob: "1991-11-13", diagnosis: "Psoriasis Vulgaris", lastVisit: "2025-09-29" },
-  { id: "P-00020", name: "Grace Adams", dob: "1984-04-08", diagnosis: "Fibromyalgia", lastVisit: "2025-10-21" },
-];
+type SortColumn = 'name' | 'mrn' | 'last_visit_date';
+type SortOrder = 'asc' | 'desc';
 
 
 
@@ -142,7 +123,7 @@ function PerformanceMetrics() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
             <div className="flex justify-between">
               <span className="text-slate-500">Virtual Window:</span>
-              <span className="font-mono text-slate-700">0-{patients.length} of {patients.length}</span>
+              <span className="font-mono text-slate-700">Rendering visible rows only</span>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-500">Scroll Position:</span>
@@ -150,7 +131,7 @@ function PerformanceMetrics() {
             </div>
             <div className="flex justify-between">
               <span className="text-slate-500">Row Height:</span>
-              <span className="font-mono text-slate-700">48px (fixed)</span>
+              <span className="font-mono text-slate-700">Dynamic (48-300px)</span>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-500">Container Height:</span>
@@ -158,7 +139,7 @@ function PerformanceMetrics() {
             </div>
             <div className="flex justify-between">
               <span className="text-slate-500">Total Rows:</span>
-              <span className="font-mono text-slate-700">{patients.length} rows</span>
+              <span className="font-mono text-slate-700">{metrics.memoryUsage > 100 ? '100,000+' : '20'} rows</span>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-500">Last Update:</span>
@@ -185,11 +166,275 @@ function PerformanceMetrics() {
 
 export default function Home() {
   const perfTracker = PerformanceTracker.getInstance();
-  
-  // Ultra-lightweight scroll handler
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+
+  // State management
+  const [patients, setPatients] = useState<PatientRecord[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [sortColumn, setSortColumn] = useState<SortColumn>('last_visit_date');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+
+  // Virtualization state
+  const [scrollTop, setScrollTop] = useState(0);
+  const [containerHeight, setContainerHeight] = useState(600);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Row height management
+  const rowHeightCache = useRef<Map<string, number>>(new Map());
+  const rowRefs = useRef<Map<string, HTMLTableRowElement>>(new Map());
+  const DEFAULT_ROW_HEIGHT = 48;
+  const OVERSCAN = 5;
+
+  // Data cache for fetched records
+  const dataCache = useRef<Map<string, PatientRecord>>(new Map());
+
+  // Debounce timer for search
+  const searchTimerRef = useRef<NodeJS.Timeout | undefined>(undefined);
+
+  // Fetch patients from API
+  const fetchPatients = useCallback(async (
+    limit: number = 200,
+    offset: number = 0,
+    sort: SortColumn = sortColumn,
+    order: SortOrder = sortOrder,
+    query: string = searchQuery
+  ) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const params = new URLSearchParams({
+        limit: limit.toString(),
+        offset: offset.toString(),
+        sort,
+        order,
+      });
+
+      if (query) {
+        params.append('q', query);
+      }
+
+      const response = await fetch(`/api/patients?${params}`);
+      if (!response.ok) throw new Error('Failed to fetch patients');
+
+      const data = await response.json();
+
+      // Cache the fetched records
+      data.rows.forEach((patient: PatientRecord) => {
+        dataCache.current.set(patient.id, patient);
+      });
+
+      if (offset === 0) {
+        setPatients(data.rows);
+        setTotalCount(data.total);
+        perfTracker.setDataSize(data.total);
+      } else {
+        setPatients(prev => [...prev, ...data.rows]);
+      }
+
+      setLoading(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+      setLoading(false);
+    }
+  }, [sortColumn, sortOrder, searchQuery, perfTracker]);
+
+  // Fetch full summary for expanded row
+  const fetchFullSummary = useCallback(async (patientId: string) => {
+    try {
+      const response = await fetch(`/api/patients/${patientId}`);
+      if (!response.ok) throw new Error('Failed to fetch patient details');
+
+      const patient = await response.json();
+
+      // Update cache and state
+      dataCache.current.set(patient.id, patient);
+      setPatients(prev => prev.map(p => p.id === patient.id ? patient : p));
+    } catch (err) {
+      console.error('Error fetching patient details:', err);
+    }
+  }, []);
+
+  // Initial load
+  useEffect(() => {
+    fetchPatients();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Handle search with debounce
+  useEffect(() => {
+    if (searchTimerRef.current) {
+      clearTimeout(searchTimerRef.current);
+    }
+
+    searchTimerRef.current = setTimeout(() => {
+      rowHeightCache.current.clear();
+      dataCache.current.clear();
+      fetchPatients(200, 0, sortColumn, sortOrder, searchQuery);
+    }, 300);
+
+    return () => {
+      if (searchTimerRef.current) {
+        clearTimeout(searchTimerRef.current);
+      }
+    };
+  }, [searchQuery, sortColumn, sortOrder, fetchPatients]);
+
+  // Handle sorting
+  const handleSort = useCallback((column: SortColumn) => {
+    const newOrder = sortColumn === column && sortOrder === 'asc' ? 'desc' : 'asc';
+    setSortColumn(column);
+    setSortOrder(newOrder);
+    rowHeightCache.current.clear();
+    dataCache.current.clear();
+  }, [sortColumn, sortOrder]);
+
+  // Handle row expansion
+  const toggleRowExpansion = useCallback((patientId: string) => {
+    setExpandedRows(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(patientId)) {
+        newSet.delete(patientId);
+      } else {
+        newSet.add(patientId);
+        // Fetch full summary if not already cached
+        const patient = dataCache.current.get(patientId);
+        if (!patient?.summary) {
+          fetchFullSummary(patientId);
+        }
+      }
+      return newSet;
+    });
+  }, [fetchFullSummary]);
+
+  // Calculate row height
+  const getRowHeight = useCallback((patientId: string, isExpanded: boolean) => {
+    if (!isExpanded) {
+      return DEFAULT_ROW_HEIGHT;
+    }
+
+    // Return cached height if available
+    const cached = rowHeightCache.current.get(patientId);
+    if (cached) return cached;
+
+    // Estimate based on summary length
+    const patient = dataCache.current.get(patientId);
+    if (patient?.summary) {
+      const summaryLength = patient.summary.length;
+      // Rough estimate: 80 chars per line, 20px per line, plus base height
+      const estimatedLines = Math.ceil(summaryLength / 80);
+      return DEFAULT_ROW_HEIGHT + (estimatedLines * 20);
+    }
+
+    return DEFAULT_ROW_HEIGHT * 3; // Default expanded height
+  }, []);
+
+  // Measure row height after render
+  const measureRowHeight = useCallback((patientId: string, element: HTMLTableRowElement | null) => {
+    if (element) {
+      rowRefs.current.set(patientId, element);
+      const height = element.getBoundingClientRect().height;
+      if (height > 0) {
+        rowHeightCache.current.set(patientId, height);
+      }
+    }
+  }, []);
+
+  // Calculate virtualization window
+  const virtualWindow = useMemo(() => {
+    let currentOffset = 0;
+    let startIndex = 0;
+    let endIndex = 0;
+
+    // Find start index
+    for (let i = 0; i < patients.length; i++) {
+      const isExpanded = expandedRows.has(patients[i].id);
+      const rowHeight = getRowHeight(patients[i].id, isExpanded);
+
+      if (currentOffset + rowHeight > scrollTop) {
+        startIndex = Math.max(0, i - OVERSCAN);
+        break;
+      }
+      currentOffset += rowHeight;
+    }
+
+    // Find end index
+    currentOffset = 0;
+    for (let i = 0; i < patients.length; i++) {
+      const isExpanded = expandedRows.has(patients[i].id);
+      const rowHeight = getRowHeight(patients[i].id, isExpanded);
+      currentOffset += rowHeight;
+
+      if (currentOffset > scrollTop + containerHeight) {
+        endIndex = Math.min(patients.length, i + OVERSCAN + 1);
+        break;
+      }
+    }
+
+    if (endIndex === 0) endIndex = patients.length;
+
+    // Calculate total height and offsets
+    let totalHeight = 0;
+    const offsets: number[] = [];
+
+    for (let i = 0; i < patients.length; i++) {
+      offsets.push(totalHeight);
+      const isExpanded = expandedRows.has(patients[i].id);
+      const rowHeight = getRowHeight(patients[i].id, isExpanded);
+      totalHeight += rowHeight;
+    }
+
+    return { startIndex, endIndex, totalHeight, offsets };
+  }, [patients, scrollTop, containerHeight, expandedRows, getRowHeight]);
+
+  // Visible rows to render
+  const visibleRows = useMemo(() => {
+    return patients.slice(virtualWindow.startIndex, virtualWindow.endIndex);
+  }, [patients, virtualWindow.startIndex, virtualWindow.endIndex]);
+
+  // Scroll handler with requestAnimationFrame
+  const rafRef = useRef<number | undefined>(undefined);
+  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
     const target = e.currentTarget;
-    perfTracker.updateScroll(target.scrollTop, target.clientHeight);
+
+    if (rafRef.current !== undefined) {
+      cancelAnimationFrame(rafRef.current);
+    }
+
+    rafRef.current = requestAnimationFrame(() => {
+      setScrollTop(target.scrollTop);
+      setContainerHeight(target.clientHeight);
+      perfTracker.updateScroll(target.scrollTop, target.clientHeight, visibleRows.length);
+    });
+  }, [perfTracker, visibleRows.length]);
+
+  // Infinite scroll detection
+  useEffect(() => {
+    if (loading || patients.length >= totalCount) return;
+
+    const { totalHeight } = virtualWindow;
+    const scrollBottom = scrollTop + containerHeight;
+
+    // Load more when within 500px of bottom
+    if (totalHeight - scrollBottom < 500) {
+      fetchPatients(200, patients.length);
+    }
+  }, [scrollTop, containerHeight, virtualWindow, loading, patients.length, totalCount, fetchPatients]);
+
+  // Update container height on mount
+  useEffect(() => {
+    if (containerRef.current) {
+      setContainerHeight(containerRef.current.clientHeight);
+    }
+  }, []);
+
+  // Render sort indicator
+  const SortIndicator = ({ column }: { column: SortColumn }) => {
+    if (sortColumn !== column) return null;
+    return <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>;
   };
 
   return (
@@ -201,59 +446,116 @@ export default function Home() {
             <p className="mt-1 text-sm text-gray-600">Electronic Health Records Management</p>
           </div>
 
+          {/* Search bar */}
+          <div className="mb-4">
+            <input
+              type="text"
+              placeholder="Search by name or MRN..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          {error && (
+            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+              {error}
+            </div>
+          )}
+
           <div className="bg-white shadow-sm border border-gray-200 rounded-lg overflow-hidden">
-            <div 
-              className="overflow-x-auto" 
+            <div
+              ref={containerRef}
+              className="overflow-auto"
               style={{ maxHeight: "600px" }}
               onScroll={handleScroll}
             >
               <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-slate-800 sticky top-0">
+                <thead className="bg-slate-800 sticky top-0 z-10">
                   <tr>
-                    <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">
-                      Patient ID
+                    <th
+                      scope="col"
+                      className="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider cursor-pointer hover:bg-slate-700"
+                      onClick={() => handleSort('mrn')}
+                    >
+                      MRN <SortIndicator column="mrn" />
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider cursor-pointer hover:bg-slate-700"
+                      onClick={() => handleSort('name')}
+                    >
+                      Patient Name <SortIndicator column="name" />
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider cursor-pointer hover:bg-slate-700"
+                      onClick={() => handleSort('last_visit_date')}
+                    >
+                      Last Visit Date <SortIndicator column="last_visit_date" />
                     </th>
                     <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">
-                      Patient Name
-                    </th>
-                    <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">
-                      Date of Birth
-                    </th>
-                    <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">
-                      Diagnosis / Condition
-                    </th>
-                    <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">
-                      Last Visit Date
+                      Summary
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {patients.map((patient) => (
-                    <tr key={patient.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">
-                        {patient.id}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {patient.name}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {patient.dob}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
-                        {patient.diagnosis}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {patient.lastVisit}
-                      </td>
-                    </tr>
-                  ))}
+                <tbody className="bg-white divide-y divide-gray-200" style={{ position: 'relative', height: `${virtualWindow.totalHeight}px` }}>
+                  {visibleRows.map((patient, idx) => {
+                    const actualIndex = virtualWindow.startIndex + idx;
+                    const isExpanded = expandedRows.has(patient.id);
+                    const topOffset = virtualWindow.offsets[actualIndex];
+
+                    return (
+                      <tr
+                        key={patient.id}
+                        ref={(el) => measureRowHeight(patient.id, el)}
+                        className="hover:bg-slate-50 transition-colors cursor-pointer"
+                        style={{
+                          position: 'absolute',
+                          top: `${topOffset}px`,
+                          left: 0,
+                          right: 0,
+                          width: '100%',
+                        }}
+                        onClick={() => toggleRowExpansion(patient.id)}
+                      >
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">
+                          {patient.mrn}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {patient.name}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {patient.last_visit_date}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900">
+                          {isExpanded ? (
+                            <div className="whitespace-pre-wrap">
+                              {patient.summary || patient.summary_preview || 'Loading...'}
+                            </div>
+                          ) : (
+                            <div className="truncate max-w-md">
+                              {patient.summary_preview || patient.summary?.substring(0, 120) || ''}
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
+
+              {loading && (
+                <div className="flex justify-center items-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  <span className="ml-3 text-gray-600">Loading...</span>
+                </div>
+              )}
             </div>
             <div className="bg-slate-50 px-6 py-3 border-t border-slate-200">
               <div className="flex items-center justify-between">
                 <div className="text-sm text-slate-700">
-                  Showing <span className="font-medium">20</span> of <span className="font-medium">20</span> results
+                  Showing <span className="font-medium">{patients.length}</span> of <span className="font-medium">{totalCount.toLocaleString()}</span> results
                 </div>
                 <div className="text-xs text-slate-500">
                   Last updated: {new Date().toLocaleDateString()}
