@@ -86,6 +86,11 @@ export function TableHeader<T>({
                 ${isSortable && onSort ? 'cursor-pointer hover:bg-slate-700' : ''}
                 ${column.className || ''}
               `}
+              style={{
+                // Apply explicit width for column alignment
+                // This ensures header columns match body columns exactly
+                width: column.width,
+              }}
               onClick={() => {
                 if (isSortable && onSort) {
                   onSort(column.key);

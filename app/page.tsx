@@ -596,6 +596,7 @@ export default function Home() {
         <span className="font-medium text-slate-900">{patient.mrn}</span>
       ),
       className: 'whitespace-nowrap',
+      width: '150px', // Fixed width for MRN column
     },
     {
       key: 'name',
@@ -606,6 +607,7 @@ export default function Home() {
         <span className="text-gray-900">{patient.name}</span>
       ),
       className: 'whitespace-nowrap',
+      width: '250px', // Fixed width for Name column
     },
     {
       key: 'last_visit_date',
@@ -616,6 +618,7 @@ export default function Home() {
         <span className="text-gray-500">{patient.last_visit_date}</span>
       ),
       className: 'whitespace-nowrap',
+      width: '180px', // Fixed width for Date column
     },
     {
       key: 'summary',
@@ -628,6 +631,7 @@ export default function Home() {
           {patient.summary || ''}
         </div>
       ),
+      width: 'auto', // Auto width for Summary column (takes remaining space)
     },
   ];
 

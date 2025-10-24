@@ -167,11 +167,11 @@ export type FetchPatientsParams = {
 
 /**
  * TableColumn - Generic column definition for VirtualTable
- * 
+ *
  * This allows the VirtualTable component to be reusable with any data type.
- * 
+ *
  * Type parameter T: The row data type (e.g., PatientRecord)
- * 
+ *
  * Fields:
  * - key: Unique identifier for the column
  * - label: Display text in header
@@ -179,6 +179,9 @@ export type FetchPatientsParams = {
  * - sortKey: The field name to sort by (if different from key)
  * - render: Custom render function for cell content
  * - className: Optional CSS classes for the column
+ * - width: Column width (e.g., '120px', '200px', 'auto', '1fr')
+ *          This ensures consistent column widths across header and body rows
+ *          Required for proper column alignment with virtualized rows
  */
 export type TableColumn<T> = {
   key: string;
@@ -187,6 +190,7 @@ export type TableColumn<T> = {
   sortKey?: keyof T;
   render: (row: T) => React.ReactNode;
   className?: string;
+  width?: string; // Column width for alignment
 };
 
 // ============================================================================

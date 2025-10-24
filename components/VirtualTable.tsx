@@ -165,7 +165,15 @@ export function VirtualTable<T>({
         style={{ maxHeight }}
         onScroll={handleScroll}
       >
-        <table className="min-w-full divide-y divide-gray-200">
+        <table
+          className="min-w-full divide-y divide-gray-200"
+          style={{
+            // CRITICAL: Use fixed table layout for column alignment
+            // This ensures all rows use the same column widths
+            // Without this, each absolutely-positioned row calculates its own widths
+            tableLayout: 'fixed'
+          }}
+        >
           {/* ================================================================
               STEP 2.2: TABLE HEADER
               ================================================================
@@ -245,11 +253,17 @@ export function VirtualTable<T>({
                       - Iterate through column definitions
                       - Call column.render(item) to get cell content
                       - Apply column-specific styling
+                      - Apply explicit width for column alignment
                   */}
                   {columns.map((column) => (
                     <td
                       key={column.key}
                       className={`px-6 py-4 text-sm ${column.className || ''}`}
+                      style={{
+                        // Apply explicit width to match header columns
+                        // This ensures perfect alignment across all rows
+                        width: column.width,
+                      }}
                     >
                       {column.render(item)}
                     </td>
