@@ -35,14 +35,15 @@ export async function GET(request: NextRequest) {
     const countParams = q ? [q, q] : [];
     const { total } = db.prepare(countQuery).get(...countParams) as { total: number };
     
-    // Get paginated results with preview
+    // Get paginated results with FULL summary (changed from preview)
+    // This supports the new requirement: display full summaries from initial load
     const dataQuery = `
-      SELECT 
-        id, 
-        name, 
-        mrn, 
-        last_visit_date, 
-        SUBSTR(summary, 1, 120) AS summary_preview
+      SELECT
+        id,
+        name,
+        mrn,
+        last_visit_date,
+        summary
       FROM patients
       ${whereClause}
       ORDER BY ${sortColumn} ${sortOrder}
