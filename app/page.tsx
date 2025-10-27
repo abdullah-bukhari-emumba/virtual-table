@@ -655,8 +655,31 @@ export default function Home() {
               STEP 10.1: PAGE HEADER
               ================================================================ */}
           <div className="mb-8">
-            <h1 className="text-2xl font-semibold text-gray-900">PulseGrid</h1>
-            <p className="mt-1 text-sm text-gray-600">Electronic Health Records Management</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-semibold text-gray-900">PulseGrid</h1>
+                <p className="mt-1 text-sm text-gray-600">Electronic Health Records Management</p>
+              </div>
+              <a
+                href="/form"
+                className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              >
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+                Form Builder Demo
+              </a>
+            </div>
           </div>
 
           {/* ================================================================
