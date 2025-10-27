@@ -723,7 +723,7 @@ export default function Home() {
           {/* ================================================================
               STEP 10.5: FOOTER WITH INFINITE SCROLL STATUS
               ================================================================ */}
-          <div className="mt-4 bg-white shadow-sm border border-gray-200 rounded-lg px-6 py-3">
+          {/* <div className="mt-4 bg-white shadow-sm border border-gray-200 rounded-lg px-6 py-3">
             <div className="flex items-center justify-between">
               <div className="text-sm text-slate-700">
                 Showing <span className="font-medium">{patients.length}</span> of{' '}
@@ -743,7 +743,7 @@ export default function Home() {
                 Last updated: {new Date().toLocaleDateString()}
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* ================================================================
               STEP 10.6: PERFORMANCE METRICS
