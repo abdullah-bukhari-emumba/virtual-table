@@ -18,14 +18,54 @@
 
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Form } from './components/Form';
+import { FormErrorBoundary } from './components/FormErrorBoundary';
 import { patientFormSchema } from './schemas/patientFormSchema';
 import type { FormValues } from './types';
 
 /**
+ * ErrorTestComponent - Component to test error boundary
+ *
+ * This component throws an error when the button is clicked,
+ * allowing us to test the FormErrorBoundary in development mode.
+ */
+function ErrorTestComponent() {
+  const [shouldThrow, setShouldThrow] = useState(false);
+
+  if (shouldThrow) {
+    throw new Error('Test error: This is a simulated error to demonstrate the Error Boundary!');
+  }
+
+  return (
+    <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+      <h3 className="text-sm font-semibold text-yellow-900 mb-2">
+        🧪 Error Boundary Test (Development Only)
+      </h3>
+      <p className="text-xs text-yellow-800 mb-3">
+        Click the button below to trigger an error and see the error boundary in action.
+      </p>
+      <button
+        type="button"
+        onClick={() => setShouldThrow(true)}
+        className="
+          px-4 py-2
+          bg-yellow-600 text-white
+          text-sm font-medium rounded
+          hover:bg-yellow-700
+          focus:outline-none focus:ring-2 focus:ring-yellow-500
+          transition-colors
+        "
+      >
+        Trigger Error
+      </button>
+    </div>
+  );
+}
+
+/**
  * PatientIntakeFormPage - Main page component
- * 
+ *
  * This page renders a comprehensive patient intake form for an EHR system.
  * It demonstrates all features of the custom form system.
  */
@@ -41,28 +81,34 @@ export default function PatientIntakeFormPage() {
     lastName: '',
     dateOfBirth: '',
     gender: '',
-    
+
     // Contact Information
     email: '',
     phone: '',
     address: '',
-    
+
     // Medical Information
     bloodType: '',
     hasAllergies: false,
     allergies: '',
     hasChronicConditions: false,
     chronicConditions: '',
-    
+
     // Insurance Information
     hasInsurance: false,
     insuranceProvider: '',
     insurancePolicyNumber: '',
-    
-    // Emergency Contact
+
+    // Emergency Contact (Legacy - single contact)
     emergencyContactName: '',
     emergencyContactPhone: '',
     emergencyContactRelationship: '',
+
+    // Emergency Contacts (New - dynamic array)
+    // Start with one empty contact by default
+    emergencyContacts: [
+      { name: '', phone: '', relationship: '' }
+    ],
   };
 
   // ==========================================================================
@@ -139,8 +185,13 @@ export default function PatientIntakeFormPage() {
           </p>
         </div>
 
-        {/* Form Container */}
-        <div className="bg-white shadow-lg rounded-lg p-8">
+        {/* Error Boundary wraps the entire form to catch any errors */}
+        <FormErrorBoundary>
+          {/* Error Test Component (Development Only) */}
+          {process.env.NODE_ENV === 'development' && <ErrorTestComponent />}
+
+          {/* Form Container */}
+          <div className="bg-white shadow-lg rounded-lg p-8">
           <Form
             initialValues={initialValues}
             onSubmit={handleSubmit}
@@ -341,39 +392,146 @@ export default function PatientIntakeFormPage() {
             </div>
 
             {/* ============================================================
-                SECTION 5: EMERGENCY CONTACT
+                SECTION 5: EMERGENCY CONTACT (Legacy - Single Contact)
                 ============================================================ */}
             <div className="mb-8">
               <h2 className="text-xl font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">
-                Emergency Contact
+                Emergency Contact (Legacy)
               </h2>
 
               {/* Emergency Contact Name */}
               <Form.Field name="emergencyContactName" label="Contact Name" required>
-                <Form.Input 
-                  name="emergencyContactName" 
-                  type="text" 
+                <Form.Input
+                  name="emergencyContactName"
+                  type="text"
                   placeholder="Full name of emergency contact"
                 />
               </Form.Field>
 
               {/* Emergency Contact Phone */}
               <Form.Field name="emergencyContactPhone" label="Contact Phone" required>
-                <Form.Input 
-                  name="emergencyContactPhone" 
-                  type="tel" 
+                <Form.Input
+                  name="emergencyContactPhone"
+                  type="tel"
                   placeholder="(555) 123-4567"
                 />
               </Form.Field>
 
               {/* Emergency Contact Relationship */}
               <Form.Field name="emergencyContactRelationship" label="Relationship" required>
-                <Form.Select 
-                  name="emergencyContactRelationship" 
+                <Form.Select
+                  name="emergencyContactRelationship"
                   options={relationshipOptions}
                   placeholder="Select relationship"
                 />
               </Form.Field>
+            </div>
+
+            {/* ============================================================
+                SECTION 6: EMERGENCY CONTACTS (Dynamic Array)
+                ============================================================
+                This section demonstrates the Form.FieldArray component.
+
+                FEATURES DEMONSTRATED:
+                - Dynamic field arrays (add/remove items)
+                - Nested validation for each array item
+                - Clean UI with remove buttons for each item
+                - Default values for new items
+                - Array-specific error handling
+                ============================================================ */}
+            <div className="mb-8">
+              <h2 className="text-xl font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">
+                Emergency Contacts (Dynamic Array)
+              </h2>
+
+              <p className="text-sm text-gray-600 mb-4">
+                Add multiple emergency contacts. You can add or remove contacts as needed.
+              </p>
+
+              {/* FIELD ARRAY: Emergency Contacts
+                  This demonstrates dynamic array fields where users can add/remove items.
+                  Each item has its own validation rules defined in the schema. */}
+              <Form.FieldArray
+                name="emergencyContacts"
+                defaultValue={{ name: '', phone: '', relationship: '' }}
+                addButtonText="Add Another Contact"
+              >
+                {({ items, remove }) => (
+                  <>
+                    {items.map((_, index) => (
+                      <div
+                        key={index}
+                        className="p-4 mb-4 border border-gray-200 rounded-lg bg-gray-50"
+                      >
+                        {/* Contact Header with Remove Button */}
+                        <div className="flex justify-between items-center mb-4">
+                          <h4 className="text-md font-semibold text-gray-700">
+                            Contact #{index + 1}
+                          </h4>
+
+                          {/* Remove Button - Only show if more than 1 contact */}
+                          {items.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => remove(index)}
+                              className="
+                                px-3 py-1
+                                text-sm text-red-600
+                                border border-red-300
+                                rounded
+                                hover:bg-red-50
+                                focus:outline-none focus:ring-2 focus:ring-red-500
+                                transition-colors
+                              "
+                            >
+                              Remove
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Contact Name Field */}
+                        <Form.Field
+                          name={`emergencyContacts[${index}].name`}
+                          label="Contact Name"
+                          required
+                        >
+                          <Form.Input
+                            name={`emergencyContacts[${index}].name`}
+                            type="text"
+                            placeholder="Full name of emergency contact"
+                          />
+                        </Form.Field>
+
+                        {/* Contact Phone Field */}
+                        <Form.Field
+                          name={`emergencyContacts[${index}].phone`}
+                          label="Contact Phone"
+                          required
+                        >
+                          <Form.Input
+                            name={`emergencyContacts[${index}].phone`}
+                            type="tel"
+                            placeholder="1234567890"
+                          />
+                        </Form.Field>
+
+                        {/* Contact Relationship Field */}
+                        <Form.Field
+                          name={`emergencyContacts[${index}].relationship`}
+                          label="Relationship"
+                          required
+                        >
+                          <Form.Select
+                            name={`emergencyContacts[${index}].relationship`}
+                            options={relationshipOptions}
+                            placeholder="Select relationship"
+                          />
+                        </Form.Field>
+                      </div>
+                    ))}
+                  </>
+                )}
+              </Form.FieldArray>
             </div>
 
             {/* ============================================================
@@ -400,9 +558,13 @@ export default function PatientIntakeFormPage() {
             <li>✓ Yup schema validation with real-time error display</li>
             <li>✓ Conditional fields (allergies, chronic conditions, insurance details)</li>
             <li>✓ Multiple input types (text, email, date, select, textarea, checkbox)</li>
+            <li>✓ <strong>NEW:</strong> Dynamic field arrays (Form.FieldArray) with add/remove functionality</li>
+            <li>✓ <strong>NEW:</strong> Nested validation for array items</li>
+            <li>✓ <strong>NEW:</strong> Error boundary with user-friendly error handling</li>
             <li>✓ Form data logged to console on successful submission</li>
           </ul>
         </div>
+        </FormErrorBoundary>
       </div>
     </div>
   );

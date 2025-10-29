@@ -189,9 +189,9 @@ export const patientFormSchema = yup.object().shape({
     }),
   
   // ==========================================================================
-  // EMERGENCY CONTACT
+  // EMERGENCY CONTACT (Legacy - kept for backward compatibility)
   // ==========================================================================
-  
+
   // Emergency Contact Name: Required, 2-100 characters
   emergencyContactName: yup
     .string()
@@ -199,14 +199,14 @@ export const patientFormSchema = yup.object().shape({
     .min(2, 'Name must be at least 2 characters')
     .max(100, 'Name must not exceed 100 characters')
     .trim(),
-  
+
   // Emergency Contact Phone: Required, 10-15 digits
   emergencyContactPhone: yup
     .number()
     .required('Emergency contact phone is required')
     .min(10, 'Phone number must be at least 10 digits')
     .typeError('Phone number must be a number'),
-  
+
   // Emergency Contact Relationship: Required
   emergencyContactRelationship: yup
     .string()
@@ -215,6 +215,52 @@ export const patientFormSchema = yup.object().shape({
       ['spouse', 'parent', 'child', 'sibling', 'friend', 'other'],
       'Please select a valid relationship'
     ),
+
+  // ==========================================================================
+  // EMERGENCY CONTACTS ARRAY (New - demonstrates nested field arrays)
+  // ==========================================================================
+
+  /**
+   * Emergency Contacts Array - Dynamic list of emergency contacts
+   *
+   * This demonstrates nested field array validation where each item in the
+   * array has its own validation rules. Users can add/remove contacts dynamically.
+   *
+   * VALIDATION RULES:
+   * - Array must have at least 1 contact
+   * - Each contact must have: name, phone, and relationship
+   * - Name: 2-100 characters
+   * - Phone: 10-15 digits
+   * - Relationship: One of predefined options
+   */
+  emergencyContacts: yup
+    .array()
+    .of(
+      yup.object().shape({
+        name: yup
+          .string()
+          .required('Contact name is required')
+          .min(2, 'Name must be at least 2 characters')
+          .max(100, 'Name must not exceed 100 characters')
+          .trim(),
+
+        phone: yup
+          .string()
+          .required('Contact phone is required')
+          .matches(/^\d{10,15}$/, 'Phone must be 10-15 digits')
+          .trim(),
+
+        relationship: yup
+          .string()
+          .required('Relationship is required')
+          .oneOf(
+            ['spouse', 'parent', 'child', 'sibling', 'friend', 'other'],
+            'Please select a valid relationship'
+          ),
+      })
+    )
+    .min(1, 'At least one emergency contact is required')
+    .required('Emergency contacts are required'),
 });
 
 /**

@@ -36,6 +36,8 @@ import type {
   FormTextareaProps,
   FormCheckboxProps,
   FormRadioGroupProps,
+  FormFieldArrayProps,
+  FieldArrayHelpers,
 } from '../types';
 
 // ============================================================================
@@ -157,25 +159,33 @@ function FormField({
   // Get error message for this field (only show if field is touched)
   const error = touched[name] ? errors[name] : undefined;
   const hasError = !!error;
-  
+
+  // Generate unique ID for error message (WCAG 2.1 AA requirement)
+  const errorId = `${name}-error`;
+
   return (
     <div className={`mb-6 ${className}`}>
       {/* Field Label */}
-      <label 
-        htmlFor={name} 
+      <label
+        htmlFor={name}
         className="block text-sm font-medium text-gray-700 mb-2"
       >
         {label}
         {/* Required indicator */}
-        {required && <span className="text-red-500 ml-1">*</span>}
+        {required && <span className="text-red-500 ml-1" aria-label="required">*</span>}
       </label>
-      
+
       {/* Input Component (passed as children) */}
       {children}
-      
-      {/* Error Message */}
+
+      {/* Error Message - WCAG 2.1 AA: role="alert" for screen readers */}
       {hasError && (
-        <p className="mt-1 text-sm text-red-600">
+        <p
+          id={errorId}
+          className="mt-1 text-sm text-red-600"
+          role="alert"
+          aria-live="polite"
+        >
           {error}
         </p>
       )}
@@ -210,13 +220,15 @@ function FormInput({
   type = 'text',
   placeholder,
   disabled = false,
+  required = false,
   className = '',
 }: FormInputProps) {
   // Access form context
   const { values, errors, touched, setFieldValue, setFieldTouched } = useFormContext();
-  
+
   // Get current value and error state
-  const value = values[name] || '';
+  const rawValue = values[name];
+  const value = (typeof rawValue === 'string' || typeof rawValue === 'number') ? String(rawValue) : '';
   const hasError = touched[name] && !!errors[name];
   
   // Handle input change
@@ -228,7 +240,10 @@ function FormInput({
   const handleBlur = () => {
     setFieldTouched(name, true);
   };
-  
+
+  // Generate unique ID for error message (WCAG 2.1 AA requirement)
+  const errorId = `${name}-error`;
+
   return (
     <input
       id={name}
@@ -239,10 +254,14 @@ function FormInput({
       onBlur={handleBlur}
       placeholder={placeholder}
       disabled={disabled}
+      // WCAG 2.1 AA Accessibility Attributes
+      aria-invalid={hasError ? 'true' : 'false'}
+      aria-describedby={hasError ? errorId : undefined}
+      aria-required={required ? 'true' : 'false'}
       className={`
         w-full px-4 py-2 border rounded-lg
         text-gray-900 placeholder:text-gray-400
-        focus:outline-none focus:ring-2 focus:ring-blue-500
+        focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1
         disabled:bg-gray-100 disabled:cursor-not-allowed
         ${hasError ? 'border-red-500' : 'border-gray-300'}
         ${className}
@@ -271,21 +290,26 @@ function FormSelect({
   options,
   placeholder,
   disabled = false,
+  required = false,
   className = '',
 }: FormSelectProps) {
   const { values, errors, touched, setFieldValue, setFieldTouched } = useFormContext();
-  
-  const value = values[name] || '';
+
+  const rawValue = values[name];
+  const value = (typeof rawValue === 'string' || typeof rawValue === 'number') ? String(rawValue) : '';
   const hasError = touched[name] && !!errors[name];
-  
+
+  // Generate unique ID for error message (WCAG 2.1 AA requirement)
+  const errorId = `${name}-error`;
+
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setFieldValue(name, e.target.value);
   };
-  
+
   const handleBlur = () => {
     setFieldTouched(name, true);
   };
-  
+
   return (
     <select
       id={name}
@@ -294,10 +318,14 @@ function FormSelect({
       onChange={handleChange}
       onBlur={handleBlur}
       disabled={disabled}
+      // WCAG 2.1 AA Accessibility Attributes
+      aria-invalid={hasError ? 'true' : 'false'}
+      aria-describedby={hasError ? errorId : undefined}
+      aria-required={required ? 'true' : 'false'}
       className={`
         w-full px-4 py-2 border rounded-lg
         text-gray-900
-        focus:outline-none focus:ring-2 focus:ring-blue-500
+        focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1
         disabled:bg-gray-100 disabled:cursor-not-allowed
         ${hasError ? 'border-red-500' : 'border-gray-300'}
         ${className}
@@ -338,12 +366,17 @@ function FormTextarea({
   placeholder,
   rows = 4,
   disabled = false,
+  required = false,
   className = '',
 }: FormTextareaProps) {
   const { values, errors, touched, setFieldValue, setFieldTouched } = useFormContext();
 
-  const value = values[name] || '';
+  const rawValue = values[name];
+  const value = (typeof rawValue === 'string' || typeof rawValue === 'number') ? String(rawValue) : '';
   const hasError = touched[name] && !!errors[name];
+
+  // Generate unique ID for error message (WCAG 2.1 AA requirement)
+  const errorId = `${name}-error`;
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setFieldValue(name, e.target.value);
@@ -363,10 +396,14 @@ function FormTextarea({
       placeholder={placeholder}
       rows={rows}
       disabled={disabled}
+      // WCAG 2.1 AA Accessibility Attributes
+      aria-invalid={hasError ? 'true' : 'false'}
+      aria-describedby={hasError ? errorId : undefined}
+      aria-required={required ? 'true' : 'false'}
       className={`
         w-full px-4 py-2 border rounded-lg
         text-gray-900 placeholder:text-gray-400
-        focus:outline-none focus:ring-2 focus:ring-blue-500
+        focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1
         disabled:bg-gray-100 disabled:cursor-not-allowed
         resize-vertical
         ${hasError ? 'border-red-500' : 'border-gray-300'}
@@ -395,12 +432,18 @@ function FormCheckbox({
   name,
   label,
   disabled = false,
+  required = false,
   className = '',
 }: FormCheckboxProps) {
-  const { values, setFieldValue, setFieldTouched } = useFormContext();
+  const { values, errors, touched, setFieldValue, setFieldTouched } = useFormContext();
 
   // Checkbox value is boolean
-  const checked = !!values[name];
+  const rawValue = values[name];
+  const checked = typeof rawValue === 'boolean' ? rawValue : !!rawValue;
+  const hasError = touched[name] && !!errors[name];
+
+  // Generate unique ID for error message (WCAG 2.1 AA requirement)
+  const errorId = `${name}-error`;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFieldValue(name, e.target.checked);
@@ -411,23 +454,41 @@ function FormCheckbox({
   };
 
   return (
-    <div className={`flex items-center ${className}`}>
-      <input
-        id={name}
-        name={name}
-        type="checkbox"
-        checked={checked}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        disabled={disabled}
-        className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-      />
-      <label
-        htmlFor={name}
-        className="ml-2 text-sm text-gray-700"
-      >
-        {label}
-      </label>
+    <div className={`${className}`}>
+      <div className="flex items-center">
+        <input
+          id={name}
+          name={name}
+          type="checkbox"
+          checked={checked}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          disabled={disabled}
+          // WCAG 2.1 AA Accessibility Attributes
+          aria-invalid={hasError ? 'true' : 'false'}
+          aria-describedby={hasError ? errorId : undefined}
+          aria-required={required ? 'true' : 'false'}
+          className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-offset-1"
+        />
+        <label
+          htmlFor={name}
+          className="ml-2 text-sm text-gray-700"
+        >
+          {label}
+          {required && <span className="text-red-500 ml-1" aria-label="required">*</span>}
+        </label>
+      </div>
+      {/* Error Message - WCAG 2.1 AA: role="alert" for screen readers */}
+      {hasError && (
+        <p
+          id={errorId}
+          className="mt-1 text-sm text-red-600"
+          role="alert"
+          aria-live="polite"
+        >
+          {errors[name]}
+        </p>
+      )}
     </div>
   );
 }
@@ -450,11 +511,17 @@ function FormRadioGroup({
   name,
   options,
   disabled = false,
+  required = false,
   className = '',
 }: FormRadioGroupProps) {
-  const { values, setFieldValue, setFieldTouched } = useFormContext();
+  const { values, errors, touched, setFieldValue, setFieldTouched } = useFormContext();
 
-  const selectedValue = values[name] || '';
+  const rawValue = values[name];
+  const selectedValue = (typeof rawValue === 'string' || typeof rawValue === 'number') ? String(rawValue) : '';
+  const hasError = touched[name] && !!errors[name];
+
+  // Generate unique ID for error message (WCAG 2.1 AA requirement)
+  const errorId = `${name}-error`;
 
   const handleChange = (value: string) => {
     setFieldValue(name, value);
@@ -465,28 +532,154 @@ function FormRadioGroup({
   };
 
   return (
-    <div className={`space-y-2 ${className}`}>
-      {options.map((option) => (
-        <div key={option.value} className="flex items-center">
-          <input
-            id={`${name}-${option.value}`}
-            name={name}
-            type="radio"
-            value={option.value}
-            checked={selectedValue === option.value}
-            onChange={() => handleChange(option.value)}
-            onBlur={handleBlur}
-            disabled={disabled}
-            className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-          />
-          <label
-            htmlFor={`${name}-${option.value}`}
-            className="ml-2 text-sm text-gray-700"
-          >
-            {option.label}
-          </label>
-        </div>
-      ))}
+    <div className={className}>
+      {/* Radio group with WCAG 2.1 AA role="radiogroup" */}
+      <div
+        role="radiogroup"
+        aria-required={required ? 'true' : 'false'}
+        aria-invalid={hasError ? 'true' : 'false'}
+        aria-describedby={hasError ? errorId : undefined}
+        className="space-y-2"
+      >
+        {options.map((option) => (
+          <div key={option.value} className="flex items-center">
+            <input
+              id={`${name}-${option.value}`}
+              name={name}
+              type="radio"
+              value={option.value}
+              checked={selectedValue === option.value}
+              onChange={() => handleChange(option.value)}
+              onBlur={handleBlur}
+              disabled={disabled}
+              className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500 focus:ring-offset-1"
+            />
+            <label
+              htmlFor={`${name}-${option.value}`}
+              className="ml-2 text-sm text-gray-700"
+            >
+              {option.label}
+            </label>
+          </div>
+        ))}
+      </div>
+      {/* Error Message - WCAG 2.1 AA: role="alert" for screen readers */}
+      {hasError && (
+        <p
+          id={errorId}
+          className="mt-1 text-sm text-red-600"
+          role="alert"
+          aria-live="polite"
+        >
+          {errors[name]}
+        </p>
+      )}
+    </div>
+  );
+}
+
+// ============================================================================
+// FORM.FIELDARRAY - Dynamic array field component
+// ============================================================================
+/**
+ * FormFieldArray - Dynamic field array for repeating form sections
+ *
+ * This component enables dynamic arrays of form fields, allowing users to
+ * add/remove items (e.g., multiple phone numbers, addresses, emergency contacts).
+ *
+ * FEATURES:
+ * - Add new items with default values
+ * - Remove items by index
+ * - Reorder items (move up/down)
+ * - Automatic validation for each array item
+ * - Clean error/touched state management
+ *
+ * RESPONSIBILITIES:
+ * - Manage array field state
+ * - Provide helper methods to children via render prop
+ * - Display add/remove buttons
+ * - Handle array-specific validation
+ *
+ * PROPS:
+ * - name: Field name (must be an array in form values)
+ * - children: Render function receiving array helpers
+ * - defaultValue: Default value for new items
+ * - label: Optional section label
+ * - addButtonText: Custom text for "Add" button
+ * - className: Additional CSS classes
+ *
+ * USAGE EXAMPLE:
+ * <Form.FieldArray
+ *   name="emergencyContacts"
+ *   defaultValue={{ name: '', phone: '', relationship: '' }}
+ *   label="Emergency Contacts"
+ *   addButtonText="Add Contact"
+ * >
+ *   {({ items, remove }) => (
+ *     items.map((item, index) => (
+ *       <div key={index}>
+ *         <Form.Field name={`emergencyContacts[${index}].name`} label="Name">
+ *           <Form.Input name={`emergencyContacts[${index}].name`} />
+ *         </Form.Field>
+ *         <button onClick={() => remove(index)}>Remove</button>
+ *       </div>
+ *     ))
+ *   )}
+ * </Form.FieldArray>
+ */
+function FormFieldArray({
+  name,
+  children,
+  defaultValue = {},
+  label,
+  addButtonText = 'Add Item',
+  className = '',
+}: FormFieldArrayProps) {
+  // Access form context
+  const { values, addArrayItem, removeArrayItem, moveArrayItem } = useFormContext();
+
+  // Get current array value (or empty array if not set)
+  const rawValue = values[name];
+  const items = Array.isArray(rawValue) ? rawValue : [];
+
+  // Helper methods for array manipulation
+  const helpers: FieldArrayHelpers = {
+    items,
+    add: () => addArrayItem(name, defaultValue),
+    remove: (index: number) => removeArrayItem(name, index),
+    move: (fromIndex: number, toIndex: number) => moveArrayItem(name, fromIndex, toIndex),
+  };
+
+  return (
+    <div className={`mb-6 ${className}`}>
+      {/* Section Label */}
+      {label && (
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">
+          {label}
+        </h3>
+      )}
+
+      {/* Render children with helpers */}
+      <div className="space-y-4">
+        {children(helpers)}
+      </div>
+
+      {/* Add Button */}
+      <button
+        type="button"
+        onClick={helpers.add}
+        className="
+          mt-4 px-4 py-2
+          bg-blue-600 text-white
+          rounded-lg
+          hover:bg-blue-700
+          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+          transition-colors
+          font-medium
+        "
+      >
+        + {addButtonText}
+      </button>
     </div>
   );
 }
@@ -508,6 +701,9 @@ function FormRadioGroup({
  *     <Form.Input name="email" type="email" />
  *   </Form.Field>
  *   <Form.Checkbox name="agree" label="I agree to terms" />
+ *   <Form.FieldArray name="contacts" defaultValue={{}}>
+ *     {({ items, remove }) => items.map((item, i) => (...))}
+ *   </Form.FieldArray>
  * </Form>
  */
 export const Form = Object.assign(FormRoot, {
@@ -517,5 +713,6 @@ export const Form = Object.assign(FormRoot, {
   Textarea: FormTextarea,
   Checkbox: FormCheckbox,
   RadioGroup: FormRadioGroup,
+  FieldArray: FormFieldArray,
 });
 

@@ -13,11 +13,11 @@
 
 /**
  * FormValues - Generic type for form data
- * 
+ *
  * Represents all form field values as a key-value object.
  * Example: { firstName: "John", age: 30, hasInsurance: true }
  */
-export type FormValues = Record<string, any>;
+export type FormValues = Record<string, unknown>;
 
 /**
  * FormErrors - Validation error messages
@@ -58,16 +58,16 @@ export type ConditionalRule = {
 
 /**
  * FormContextValue - The shared context for all form components
- * 
+ *
  * This is the core of the compound component pattern. All child components
  * (Form.Field, Form.Input, etc.) access this context to read/update form state.
- * 
+ *
  * STATE PROPERTIES:
  * - values: Current form field values
  * - errors: Current validation errors
  * - touched: Which fields have been interacted with
  * - isSubmitting: Whether form is currently being submitted
- * 
+ *
  * METHODS:
  * - setFieldValue: Update a single field's value
  * - setFieldTouched: Mark a field as touched
@@ -77,6 +77,9 @@ export type ConditionalRule = {
  * - handleSubmit: Handle form submission with validation
  * - resetForm: Reset form to initial state
  * - isFieldVisible: Check if a field should be shown (conditional logic)
+ * - addArrayItem: Add a new item to a field array
+ * - removeArrayItem: Remove an item from a field array
+ * - moveArrayItem: Reorder items in a field array
  */
 export type FormContextValue = {
   // ===== STATE =====
@@ -84,22 +87,27 @@ export type FormContextValue = {
   errors: FormErrors;                              // Current validation errors
   touched: FormTouched;                            // Which fields have been touched
   isSubmitting: boolean;                           // Is form currently submitting?
-  
+
   // ===== FIELD METHODS =====
-  setFieldValue: (name: string, value: any) => void;        // Update field value
+  setFieldValue: (name: string, value: unknown) => void;        // Update field value
   setFieldTouched: (name: string, touched: boolean) => void; // Mark field as touched
   setFieldError: (name: string, error: string) => void;      // Set custom error
-  
+
   // ===== VALIDATION METHODS =====
   validateField: (name: string) => Promise<void>;   // Validate single field
   validateForm: () => Promise<boolean>;             // Validate entire form
-  
+
   // ===== FORM METHODS =====
   handleSubmit: (e: React.FormEvent) => void;       // Handle form submission
   resetForm: () => void;                            // Reset to initial values
-  
+
   // ===== CONDITIONAL LOGIC =====
   isFieldVisible: (rules?: ConditionalRule[]) => boolean; // Check field visibility
+
+  // ===== ARRAY FIELD METHODS =====
+  addArrayItem: (fieldName: string, defaultValue?: unknown) => void;     // Add item to array
+  removeArrayItem: (fieldName: string, index: number) => void;       // Remove item from array
+  moveArrayItem: (fieldName: string, fromIndex: number, toIndex: number) => void; // Reorder array items
 };
 
 /**
@@ -118,7 +126,7 @@ export type FormContextValue = {
 export type FormProps = {
   initialValues: FormValues;                        // Initial form values
   onSubmit: (values: FormValues) => void | Promise<void>; // Submit handler
-  validationSchema?: any;                           // Yup validation schema
+  validationSchema?: unknown;                       // Yup validation schema
   validateOnChange?: boolean;                       // Validate on change?
   validateOnBlur?: boolean;                         // Validate on blur?
   children: React.ReactNode;                        // Child components
@@ -154,7 +162,7 @@ export type FormFieldProps = {
 
 /**
  * FormInputProps - Props for Form.Input component
- * 
+ *
  * Standard text input field with validation support.
  */
 export type FormInputProps = {
@@ -162,12 +170,13 @@ export type FormInputProps = {
   type?: 'text' | 'email' | 'password' | 'number' | 'tel' | 'date'; // Input type
   placeholder?: string;                             // Placeholder text
   disabled?: boolean;                               // Is input disabled?
+  required?: boolean;                               // Is input required? (for ARIA)
   className?: string;                               // Optional CSS classes
 };
 
 /**
  * FormSelectProps - Props for Form.Select dropdown component
- * 
+ *
  * Dropdown select field with options.
  */
 export type FormSelectProps = {
@@ -175,12 +184,13 @@ export type FormSelectProps = {
   options: Array<{ value: string; label: string }>; // Dropdown options
   placeholder?: string;                             // Placeholder text
   disabled?: boolean;                               // Is select disabled?
+  required?: boolean;                               // Is select required? (for ARIA)
   className?: string;                               // Optional CSS classes
 };
 
 /**
  * FormTextareaProps - Props for Form.Textarea component
- * 
+ *
  * Multi-line text input field.
  */
 export type FormTextareaProps = {
@@ -188,30 +198,71 @@ export type FormTextareaProps = {
   placeholder?: string;                             // Placeholder text
   rows?: number;                                    // Number of visible rows
   disabled?: boolean;                               // Is textarea disabled?
+  required?: boolean;                               // Is textarea required? (for ARIA)
   className?: string;                               // Optional CSS classes
 };
 
 /**
  * FormCheckboxProps - Props for Form.Checkbox component
- * 
+ *
  * Checkbox input for boolean values.
  */
 export type FormCheckboxProps = {
   name: string;                                     // Field name
   label: string;                                    // Checkbox label
   disabled?: boolean;                               // Is checkbox disabled?
+  required?: boolean;                               // Is checkbox required? (for ARIA)
   className?: string;                               // Optional CSS classes
 };
 
 /**
  * FormRadioGroupProps - Props for Form.RadioGroup component
- * 
+ *
  * Radio button group for selecting one option from multiple choices.
  */
 export type FormRadioGroupProps = {
   name: string;                                     // Field name
   options: Array<{ value: string; label: string }>; // Radio options
   disabled?: boolean;                               // Are radios disabled?
+  required?: boolean;                               // Is selection required? (for ARIA)
   className?: string;                               // Optional CSS classes
+};
+
+/**
+ * FormFieldArrayProps - Props for Form.FieldArray component
+ *
+ * Dynamic field array that allows adding/removing items.
+ * Used for repeating form sections (e.g., multiple phone numbers, addresses).
+ *
+ * REQUIRED PROPS:
+ * - name: Field name (must be an array in form values)
+ * - children: Render function that receives array helpers
+ *
+ * OPTIONAL PROPS:
+ * - defaultValue: Default value for new array items
+ * - label: Label for the field array section
+ * - addButtonText: Custom text for the "Add" button
+ * - className: Additional CSS classes
+ */
+export type FormFieldArrayProps = {
+  name: string;                                     // Field name (array)
+  children: (helpers: FieldArrayHelpers) => React.ReactNode; // Render function
+  defaultValue?: unknown;                           // Default value for new items
+  label?: string;                                   // Section label
+  addButtonText?: string;                           // Custom "Add" button text
+  className?: string;                               // Optional CSS classes
+};
+
+/**
+ * FieldArrayHelpers - Helper methods for array field manipulation
+ *
+ * Provided to the render function of Form.FieldArray.
+ * Allows adding, removing, and reordering array items.
+ */
+export type FieldArrayHelpers = {
+  items: unknown[];                                 // Current array items
+  add: () => void;                                  // Add new item
+  remove: (index: number) => void;                  // Remove item at index
+  move: (fromIndex: number, toIndex: number) => void; // Move item
 };
 
