@@ -26,8 +26,10 @@ import type {
   FormValues,
   FormErrors,
   FormTouched,
-  ConditionalRule
+  ConditionalRule,
+  ArrayMetadata
 } from '../types';
+import { normalizeFormValues, denormalizeFormValues, getArrayItems, getNextArrayIndex } from '../utils/normalization';
 
 // ============================================================================
 // FORM STATE TYPE DEFINITION
@@ -51,7 +53,8 @@ import type {
  * - submitCount: Number of times form has been submitted
  */
 type FormState = {
-  values: FormValues;           // Current form values
+  values: FormValues;           // Current form values (NORMALIZED: flat field paths)
+  arrayMetadata: ArrayMetadata; // Metadata for array fields (length, indices)
   errors: FormErrors;           // Current validation errors
   touched: FormTouched;         // Which fields have been touched
   isSubmitting: boolean;        // Is form currently submitting?
@@ -183,15 +186,19 @@ function formReducer(state: FormState, action: FormAction): FormState {
       };
 
     // Reset form to initial state
-    case 'RESET_FORM':
+    case 'RESET_FORM': {
+      // Normalize the initial values
+      const normalized = normalizeFormValues(action.payload);
       return {
-        values: action.payload,
+        values: normalized.values,
+        arrayMetadata: normalized.arrayMetadata,
         errors: {},
         touched: {},
         isSubmitting: false,
         isValidating: false,
         submitCount: 0,
       };
+    }
 
     // Mark form as submitting
     case 'SUBMIT_START':
@@ -322,15 +329,20 @@ export function FormProvider({
    * - Easier to test (reducer is a pure function)
    *
    * INITIAL STATE:
-   * - values: Provided initial values
+   * - values: Normalized initial values (flat field paths)
+   * - arrayMetadata: Metadata for array fields
    * - errors: Empty object (no errors initially)
    * - touched: Empty object (no fields touched initially)
    * - isSubmitting: false
    * - isValidating: false
    * - submitCount: 0
    */
+  // Normalize initial values on mount
+  const normalizedInitial = normalizeFormValues(initialValues);
+
   const [state, dispatch] = useReducer(formReducer, {
-    values: initialValues,
+    values: normalizedInitial.values,
+    arrayMetadata: normalizedInitial.arrayMetadata,
     errors: {},
     touched: {},
     isSubmitting: false,
@@ -339,7 +351,7 @@ export function FormProvider({
   });
 
   // Destructure state for easier access
-  const { values, errors, touched, isSubmitting } = state;
+  const { values, arrayMetadata, errors, touched, isSubmitting } = state;
 
   // ==========================================================================
   // FIELD VALUE MANAGEMENT
@@ -479,15 +491,17 @@ export function FormProvider({
    *
    * EXECUTION FLOW:
    * 1. Check if validation schema exists
-   * 2. Validate all values against the schema
-   * 3. If valid: Clear all errors (dispatch SET_ERRORS with empty object), return true
-   * 4. If invalid: Set all error messages (dispatch SET_ERRORS), return false
+   * 2. Denormalize values (Yup expects nested structure)
+   * 3. Validate denormalized values against the schema
+   * 4. If valid: Clear all errors (dispatch SET_ERRORS with empty object), return true
+   * 5. If invalid: Set all error messages (dispatch SET_ERRORS), return false
    *
    * RETURNS:
    * - true if form is valid
    * - false if form has validation errors
    *
    * REFACTORED: Now uses dispatch instead of setErrors
+   * NORMALIZED STATE: Denormalizes before validation
    */
   const validateForm = useCallback(async (): Promise<boolean> => {
     // Guard: No validation if no schema provided
@@ -497,9 +511,12 @@ export function FormProvider({
       // Type guard for validation schema
       if (typeof validationSchema !== 'object' || validationSchema === null) return true;
 
+      // Denormalize values for validation (Yup expects nested structure)
+      const denormalizedValues = denormalizeFormValues(values, arrayMetadata);
+
       // Validate all form values
       const schemaWithValidate = validationSchema as { validate: (values: unknown, options?: unknown) => Promise<unknown> };
-      await schemaWithValidate.validate(values, { abortEarly: false });
+      await schemaWithValidate.validate(denormalizedValues, { abortEarly: false });
 
       // Validation passed: Clear all errors
       dispatch({ type: 'SET_ERRORS', payload: {} });
@@ -527,7 +544,7 @@ export function FormProvider({
       dispatch({ type: 'SET_ERRORS', payload: validationErrors });
       return false;
     }
-  }, [validationSchema, values]);
+  }, [validationSchema, values, arrayMetadata]);
 
   // ==========================================================================
   // FORM SUBMISSION
@@ -539,7 +556,7 @@ export function FormProvider({
    * 1. Prevent default form submission
    * 2. Mark all fields as touched (to show all errors)
    * 3. Validate the entire form
-   * 4. If valid: Call onSubmit callback
+   * 4. If valid: Denormalize values and call onSubmit callback
    * 5. If invalid: Do nothing (errors are displayed)
    *
    * EXECUTION FLOW:
@@ -548,10 +565,11 @@ export function FormProvider({
    * 3. Set isSubmitting to true (dispatch SUBMIT_START)
    * 4. Mark all fields as touched (dispatch SET_TOUCHED)
    * 5. Validate entire form
-   * 6. If valid: Call onSubmit with form values
+   * 6. If valid: Denormalize values and call onSubmit
    * 7. Set isSubmitting to false (dispatch SUBMIT_END)
    *
    * REFACTORED: Now uses dispatch instead of setIsSubmitting and setTouched
+   * NORMALIZED STATE: Denormalizes before submission
    */
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -572,9 +590,10 @@ export function FormProvider({
       const isValid = await validateForm();
 
       if (isValid) {
-        // Form is valid: Call onSubmit callback
+        // Form is valid: Denormalize values and call onSubmit callback
         try {
-          await onSubmit(values);
+          const denormalizedValues = denormalizeFormValues(values, arrayMetadata);
+          await onSubmit(denormalizedValues);
         } catch (error) {
           console.error('Form submission error:', error);
         }
@@ -583,7 +602,7 @@ export function FormProvider({
       // Clear submitting state
       dispatch({ type: 'SUBMIT_END' });
     },
-    [values, validateForm, onSubmit]
+    [values, arrayMetadata, validateForm, onSubmit]
   );
 
   /**

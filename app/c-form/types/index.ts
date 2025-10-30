@@ -9,19 +9,27 @@
 // - FormErrors: Validation errors mapped to field names
 // - FormTouched: Tracks which fields have been interacted with (for showing errors)
 // - FormContextValue: The shared state and methods available to all form components
+// - ArrayMetadata: Tracks structure of array fields in normalized state
 // ============================================================================
 
 /**
  * FormValues - Generic type for form data
  *
  * Represents all form field values as a key-value object.
- * Example: { firstName: "John", age: 30, hasInsurance: true }
+ *
+ * NORMALIZED STATE:
+ * In normalized state, array fields are flattened to indexed paths:
+ * Example: {
+ *   firstName: "John",
+ *   'emergencyContacts[0].name': 'Jane',
+ *   'emergencyContacts[0].phone': '555-1234'
+ * }
  */
 export type FormValues = Record<string, unknown>;
 
 /**
  * FormErrors - Validation error messages
- * 
+ *
  * Maps field names to their error messages.
  * Example: { email: "Invalid email format", age: "Must be 18 or older" }
  */
@@ -29,12 +37,29 @@ export type FormErrors = Record<string, string>;
 
 /**
  * FormTouched - Tracks field interaction
- * 
+ *
  * Maps field names to boolean values indicating if the field has been touched.
  * Used to determine when to show validation errors (only after user interaction).
  * Example: { email: true, password: false }
  */
 export type FormTouched = Record<string, boolean>;
+
+/**
+ * ArrayMetadata - Tracks structure of array fields
+ *
+ * Maps array field names to their metadata (length and indices).
+ * Used in normalized state to track array structure when fields are flattened.
+ *
+ * EXAMPLE:
+ * {
+ *   emergencyContacts: { length: 2, indices: [0, 1] },
+ *   medications: { length: 1, indices: [0] }
+ * }
+ */
+export type ArrayMetadata = Record<string, {
+  length: number;
+  indices: number[];
+}>;
 
 /**
  * ConditionalRule - Defines when a field should be visible
