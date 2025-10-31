@@ -108,7 +108,8 @@ export type ConditionalRule = {
  */
 export type FormContextValue = {
   // ===== STATE =====
-  values: FormValues;                              // Current form values
+  values: FormValues;                              // Current form values (normalized)
+  arrayMetadata: ArrayMetadata;                    // Array field metadata (for normalized state)
   errors: FormErrors;                              // Current validation errors
   touched: FormTouched;                            // Which fields have been touched
   isSubmitting: boolean;                           // Is form currently submitting?

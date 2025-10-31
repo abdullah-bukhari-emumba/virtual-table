@@ -889,6 +889,7 @@ export function FormProvider({
   // Combine all state and methods into context value
   const contextValue: FormContextValue = {
     values,
+    arrayMetadata,
     errors,
     touched,
     isSubmitting,

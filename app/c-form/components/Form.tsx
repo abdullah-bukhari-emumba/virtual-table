@@ -28,6 +28,7 @@
 
 import React from 'react';
 import { FormProvider, useFormContext } from './FormContext';
+import { getArrayItems } from '../utils/normalization';
 import type {
   FormProps,
   FormFieldProps,
@@ -636,11 +637,11 @@ function FormFieldArray({
   className = '',
 }: FormFieldArrayProps) {
   // Access form context
-  const { values, addArrayItem, removeArrayItem, moveArrayItem } = useFormContext();
+  const { values, arrayMetadata, addArrayItem, removeArrayItem, moveArrayItem } = useFormContext();
 
-  // Get current array value (or empty array if not set)
-  const rawValue = values[name];
-  const items = Array.isArray(rawValue) ? rawValue : [];
+  // Get current array items from normalized state
+  // This uses the getArrayItems utility to reconstruct the array from flat field paths
+  const items = getArrayItems(values, arrayMetadata, name);
 
   // Helper methods for array manipulation
   const helpers: FieldArrayHelpers = {
