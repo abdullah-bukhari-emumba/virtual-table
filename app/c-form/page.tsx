@@ -21,6 +21,7 @@
 import React, { useState } from 'react';
 import { Form } from './components/Form';
 import { FormErrorBoundary } from './components/FormErrorBoundary';
+import { useFormContext } from './components/FormContext';
 import { patientFormSchema } from './schemas/patientFormSchema';
 import type { FormValues } from './types';
 
@@ -59,6 +60,56 @@ function ErrorTestComponent() {
       >
         Trigger Error
       </button>
+    </div>
+  );
+}
+
+/**
+ * StateDebugPanel - Shows normalized state structure (Development Only)
+ *
+ * This component displays the current form state to verify normalization is working.
+ */
+function StateDebugPanel() {
+  const { values, arrayMetadata } = useFormContext();
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  return (
+    <div className="mb-4 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-sm font-semibold text-purple-900">
+          🔍 Normalized State Debug Panel (Development Only)
+        </h3>
+        <button
+          type="button"
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="text-xs text-purple-700 hover:text-purple-900 font-medium"
+        >
+          {isExpanded ? '▼ Collapse' : '▶ Expand'}
+        </button>
+      </div>
+
+      {isExpanded && (
+        <div className="space-y-3">
+          <div>
+            <h4 className="text-xs font-semibold text-purple-800 mb-1">Values (Normalized):</h4>
+            <pre className="text-xs bg-white p-2 rounded border border-purple-200 overflow-auto max-h-60">
+              {JSON.stringify(values, null, 2)}
+            </pre>
+          </div>
+
+          <div>
+            <h4 className="text-xs font-semibold text-purple-800 mb-1">Array Metadata:</h4>
+            <pre className="text-xs bg-white p-2 rounded border border-purple-200 overflow-auto max-h-40">
+              {JSON.stringify(arrayMetadata, null, 2)}
+            </pre>
+          </div>
+
+          <div className="text-xs text-purple-700 bg-purple-100 p-2 rounded">
+            <strong>Note:</strong> Values are stored as flat paths (e.g., <code>emergencyContacts[0].name</code>).
+            This enables O(1) array operations instead of O(n) array spreading.
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -199,6 +250,8 @@ export default function PatientIntakeFormPage() {
             validateOnChange={true}
             validateOnBlur={true}
           >
+            {/* State Debug Panel (Development Only) */}
+            {process.env.NODE_ENV === 'development' && <StateDebugPanel />}
             {/* ============================================================
                 SECTION 1: PERSONAL INFORMATION
                 ============================================================ */}
