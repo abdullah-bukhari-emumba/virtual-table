@@ -92,14 +92,14 @@ function StateDebugPanel() {
         <div className="space-y-3">
           <div>
             <h4 className="text-xs font-semibold text-purple-800 mb-1">Values (Normalized):</h4>
-            <pre className="text-xs bg-white p-2 rounded border border-purple-200 overflow-auto max-h-60">
+            <pre className="text-xs text-black bg-white p-2 rounded border border-purple-200 overflow-auto max-h-60">
               {JSON.stringify(values, null, 2)}
             </pre>
           </div>
 
           <div>
             <h4 className="text-xs font-semibold text-purple-800 mb-1">Array Metadata:</h4>
-            <pre className="text-xs bg-white p-2 rounded border border-purple-200 overflow-auto max-h-40">
+            <pre className="text-xs text-black bg-white p-2 rounded border border-purple-200 overflow-auto max-h-40">
               {JSON.stringify(arrayMetadata, null, 2)}
             </pre>
           </div>

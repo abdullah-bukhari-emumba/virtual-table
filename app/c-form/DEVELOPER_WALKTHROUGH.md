@@ -1,6 +1,5 @@
 # Custom Form System - Complete Developer Walkthrough
 
-> **Audience:** Junior developers learning the codebase  
 > **Goal:** Understand how the entire form system works from user interaction to state management  
 > **Time to read:** 45-60 minutes
 
