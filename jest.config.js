@@ -50,6 +50,7 @@ const config = {
   ],
   testPathIgnorePatterns: [
     '/node_modules/',
+    '/e2e/',
     'test-normalization.js',
   ],
 }
