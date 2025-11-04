@@ -36,7 +36,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
-import Home from '../../page';
+import PatientsPageClient from '../../../components/PatientsPageClient';
 
 // ============================================================================
 // MOCK SETUP
@@ -47,6 +47,28 @@ import Home from '../../page';
 
 // Store the original fetch function so we can restore it later
 const originalFetch = global.fetch;
+
+// Mock initial data that would normally come from the Server Component
+// This simulates the data passed from app/page.tsx to PatientsPageClient
+const mockInitialData = {
+  rows: [
+    {
+      id: '1',
+      name: 'John Doe',
+      mrn: '12345',
+      last_visit_date: '2024-01-15',
+      summary: 'Patient summary for John Doe',
+    },
+    {
+      id: '2',
+      name: 'Jane Wilson',
+      mrn: '67890',
+      last_visit_date: '2024-01-14',
+      summary: 'Patient summary for Jane Wilson',
+    },
+  ],
+  total: 100000, // Total count in database
+};
 
 // ============================================================================
 // TEST SUITE: Patient Search Flow Integration
@@ -142,18 +164,23 @@ describe('Patient Search Flow Integration', () => {
       }
     });
 
-    // ACT: Render the Home page
-    render(<Home />);
+    // ACT: Render the PatientsPageClient with mock initial data
+    // Note: We now test the Client Component directly since the Server Component
+    // (app/page.tsx) cannot be tested in a client-side test environment
+    render(<PatientsPageClient initialData={mockInitialData} />);
 
-    // ASSERT: Wait for initial data to load
-    // The page should show the initial patients
+    // ASSERT: Initial data should be visible immediately (no loading spinner!)
+    // With Server Components, data is pre-fetched on server and passed via props
+    // This means NO initial client-side API call - data is already available
     await waitFor(() => {
       expect(screen.getByText('John Doe')).toBeInTheDocument();
     }, { timeout: 2000 });
 
-    // Verify initial API call was made (may be called twice in React 18 strict mode)
+    // IMPORTANT: Verify NO initial API call was made
+    // This is the key benefit of Server Components - initial data comes from server
+    // The client component receives data via props, not via API call
     const initialCallCount = mockFetch.mock.calls.length;
-    expect(initialCallCount).toBeGreaterThanOrEqual(1);
+    expect(initialCallCount).toBe(0); // Changed from toBeGreaterThanOrEqual(1) to toBe(0)
 
     // ACT: User types "Smith" in search box
     const searchInput = screen.getByPlaceholderText(/search/i);
@@ -226,7 +253,7 @@ describe('Patient Search Flow Integration', () => {
     });
 
     // ACT: Render and wait for initial load
-    render(<Home />);
+    render(<PatientsPageClient initialData={mockInitialData} />);
     await waitFor(() => {
       expect(screen.getByText('John Doe')).toBeInTheDocument();
     }, { timeout: 2000 });
@@ -292,7 +319,7 @@ describe('Patient Search Flow Integration', () => {
     });
 
     // ACT: Render and wait for initial load
-    render(<Home />);
+    render(<PatientsPageClient initialData={mockInitialData} />);
     await waitFor(() => {
       expect(screen.getByText('John Doe')).toBeInTheDocument();
     }, { timeout: 2000 });
@@ -363,8 +390,8 @@ describe('Patient Search Flow Integration', () => {
       }
     });
 
-    // ACT: Render the Home page
-    render(<Home />);
+    // ACT: Render the PatientsPageClient with mock initial data
+    render(<PatientsPageClient initialData={mockInitialData} />);
 
     // ASSERT: Performance metrics should be visible
     // The PerformanceMetrics component shows FPS, Load Time, and Visible Rows
