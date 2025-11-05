@@ -76,7 +76,9 @@ export default async function Home() {
   // Fetch initial patient data directly from database
   // This runs ONLY on the server, never on the client
   // No HTTP overhead - direct database access via getDatabase()
-  const initialData = await getInitialPatients(50, 'last_visit_date', 'desc');
+
+  const Initial_Patient_Count = 50;
+  const initialData = await getInitialPatients(Initial_Patient_Count, 'last_visit_date', 'desc');
 
   // ==========================================================================
   // STEP 2: RENDER WITH SUSPENSE BOUNDARY (STREAMING SSR)
