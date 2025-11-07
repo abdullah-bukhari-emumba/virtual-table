@@ -377,6 +377,148 @@ export async function GET() {
 - [PNPM Workspaces](https://pnpm.io/workspaces)
 - [Vercel CLI](https://vercel.com/docs/cli)
 
+## 🔄 Rollback Procedures
+
+### Rollback a Deployment
+
+If you need to rollback to a previous deployment:
+
+1. **Via Vercel Dashboard**:
+   - Go to Project → Deployments
+   - Find the previous stable deployment
+   - Click the three dots menu
+   - Select "Promote to Production"
+
+2. **Via Vercel CLI**:
+   ```bash
+   vercel rollback
+   ```
+
+3. **Manual Rollback**:
+   - Push a revert commit to your main branch
+   - Vercel will automatically redeploy
+
+### Rollback Strategy
+
+For Multi-Zone deployments:
+
+1. **If Forms Zone has issues**:
+   - Rollback forms zone only
+   - Shell zone continues working with previous forms URL
+   - Users can still access the patient table
+
+2. **If Shell Zone has issues**:
+   - Rollback shell zone only
+   - Forms zone continues working independently
+   - Users can still access forms directly
+
+3. **If Both Zones have issues**:
+   - Rollback forms zone first (it's independent)
+   - Then rollback shell zone
+   - Verify cross-zone navigation works
+
+## 🚀 Continuous Deployment
+
+### GitHub Actions Integration
+
+Create `.github/workflows/deploy.yml`:
+
+```yaml
+name: Deploy Multi-Zone
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Deploy Forms Zone
+        run: |
+          vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }} \
+            --scope=${{ secrets.VERCEL_ORG_ID }} \
+            apps/forms
+
+      - name: Deploy Shell Zone
+        run: |
+          vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }} \
+            --scope=${{ secrets.VERCEL_ORG_ID }} \
+            apps/shell
+```
+
+### Environment-Specific Deployments
+
+**Production Deployment**:
+```bash
+# Deploy to production
+vercel deploy --prod
+```
+
+**Preview Deployment**:
+```bash
+# Deploy to preview (automatic on PR)
+vercel deploy
+```
+
+**Staging Deployment**:
+```bash
+# Deploy to staging environment
+vercel deploy --prod --env staging
+```
+
+## 📋 Multi-Zone Deployment Checklist
+
+### Pre-Deployment
+
+- [ ] All tests passing (`pnpm test:all`)
+- [ ] No TypeScript errors (`pnpm build`)
+- [ ] Code reviewed and approved
+- [ ] Changelog updated
+- [ ] Database migrations tested (if applicable)
+- [ ] Environment variables documented
+
+### Forms Zone Deployment
+
+- [ ] Forms zone builds successfully
+- [ ] No console errors in browser
+- [ ] Form validation works correctly
+- [ ] Form submission works
+- [ ] Error handling works
+- [ ] Responsive design verified on mobile
+
+### Shell Zone Deployment
+
+- [ ] Shell zone builds successfully
+- [ ] Patient table loads with data
+- [ ] Search functionality works
+- [ ] Sorting works correctly
+- [ ] Virtual scrolling performs well (60 FPS)
+- [ ] API routes respond correctly
+- [ ] `FORMS_URL` environment variable is correct
+
+### Cross-Zone Integration
+
+- [ ] Navigation from shell to forms works
+- [ ] Navigation from forms back to shell works
+- [ ] Forms zone accessible at `/forms/patient-intake`
+- [ ] Forms zone accessible directly at its domain
+- [ ] Asset loading works (no 404s)
+- [ ] No CORS errors in console
+
+### Post-Deployment
+
+- [ ] Monitor error tracking (Sentry, etc.)
+- [ ] Check analytics for traffic
+- [ ] Monitor performance metrics
+- [ ] Verify database connections
+- [ ] Test on multiple browsers
+- [ ] Test on mobile devices
+- [ ] Verify custom domains (if applicable)
+- [ ] Check SSL certificates
+
 ## 🎯 Deployment Checklist
 
 - [ ] Forms zone deployed and accessible
@@ -391,4 +533,41 @@ export async function GET() {
 - [ ] Security headers configured
 - [ ] Preview deployments working
 - [ ] Production deployment tested end-to-end
+- [ ] Rollback procedure documented and tested
+- [ ] Monitoring and alerting configured
+- [ ] Team trained on deployment process
+
+## 🆘 Getting Help
+
+### Common Issues and Solutions
+
+**Issue: "Module not found" during build**
+- Ensure all workspace dependencies use `workspace:*` protocol
+- Run `pnpm install` locally to verify
+- Check that `pnpm-workspace.yaml` is in the root
+
+**Issue: Forms zone not accessible from shell zone**
+- Verify `FORMS_URL` environment variable is set correctly
+- Check that forms zone is deployed and accessible
+- Verify rewrites in `apps/shell/next.config.ts`
+- Check browser console for CORS errors
+
+**Issue: Slow performance after deployment**
+- Check Vercel Speed Insights for bottlenecks
+- Verify database queries are optimized
+- Check for large bundle sizes
+- Enable caching headers
+
+**Issue: Database connection errors**
+- Verify database URL in environment variables
+- Check database credentials
+- Verify network access to database
+- Check database logs for errors
+
+### Support Resources
+
+- [Vercel Support](https://vercel.com/support)
+- [Next.js Discord Community](https://discord.gg/nextjs)
+- [GitHub Issues](https://github.com/vercel/next.js/issues)
+- [Stack Overflow](https://stackoverflow.com/questions/tagged/next.js)
 
