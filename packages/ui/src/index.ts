@@ -4,4 +4,6 @@
  */
 
 export { PerformanceMetrics } from './PerformanceMetrics';
+export { Navigation } from './Navigation';
+export type { NavigationProps } from './Navigation';
 

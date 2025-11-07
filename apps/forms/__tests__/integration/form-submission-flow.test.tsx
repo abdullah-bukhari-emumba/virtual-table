@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import * as yup from 'yup';
-import { Form } from '../../components/Form';
+import { Form } from '../../app/forms/patient-intake/components/Form';
 import '@testing-library/jest-dom';
 
 /**

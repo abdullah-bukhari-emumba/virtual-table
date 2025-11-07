@@ -17,7 +17,7 @@
 // ============================================================================
 
 import { render, screen } from '@testing-library/react';
-import { PerformanceMetrics } from '../PerformanceMetrics';
+import { PerformanceMetrics } from '@virtual-table/ui';
 
 // ============================================================================
 // TEST SUITE: PerformanceMetrics Component

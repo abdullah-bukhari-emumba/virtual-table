@@ -27,7 +27,7 @@
 
 import { renderHook, waitFor } from '@testing-library/react';
 import { act } from 'react';
-import { useDebounce } from '../useDebounce';
+import { useDebounce } from '@virtual-table/utils';
 
 // ============================================================================
 // TEST SUITE: useDebounce Hook
@@ -35,7 +35,15 @@ import { useDebounce } from '../useDebounce';
 // A "describe" block groups related tests together
 // Think of it as a folder that contains multiple test cases
 describe('useDebounce', () => {
-  
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
+  });
+
   // ==========================================================================
   // TEST 1: Initial Value
   // ==========================================================================
@@ -69,11 +77,11 @@ describe('useDebounce', () => {
   // 3. Verify the debounced value hasn't changed yet (still the old value)
   // 4. Wait for the delay to pass
   // 5. Verify the debounced value has now updated
-  it('should debounce value changes', async () => {
+  it('should debounce value changes', () => {
     // ARRANGE: Set up initial value and delay
     const initialValue = 'hello';
     const delay = 300; // milliseconds
-    
+
     // ACT: Render the hook
     const { result, rerender } = renderHook(
       // This function will be called each time we rerender
@@ -81,28 +89,23 @@ describe('useDebounce', () => {
       // Initial props
       { initialProps: { value: initialValue } }
     );
-    
+
     // ASSERT: Initial value should be returned immediately
     expect(result.current).toBe(initialValue);
-    
+
     // ACT: Change the value by rerendering with new props
     const newValue = 'world';
     rerender({ value: newValue });
-    
+
     // ASSERT: Debounced value should still be the old value (not updated yet)
     // This is because the delay hasn't passed yet
     expect(result.current).toBe(initialValue);
-    
-    // ACT: Wait for the debounce delay to pass
-    // waitFor repeatedly checks a condition until it's true or times out
-    await waitFor(
-      () => {
-        // This function is called repeatedly until it doesn't throw an error
-        expect(result.current).toBe(newValue);
-      },
-      { timeout: delay + 100 } // Wait a bit longer than the delay
-    );
-    
+
+    // ACT: Fast-forward time by the delay amount
+    act(() => {
+      jest.advanceTimersByTime(delay);
+    });
+
     // ASSERT: Now the debounced value should be updated
     expect(result.current).toBe(newValue);
   });
@@ -116,16 +119,16 @@ describe('useDebounce', () => {
   // 1. Start with initial value
   // 2. Rapidly change the value multiple times (like typing)
   // 3. Verify only the last value is used after the delay
-  it('should only update to the final value after multiple rapid changes', async () => {
+  it('should only update to the final value after multiple rapid changes', () => {
     // ARRANGE
     const delay = 300;
-    
+
     // ACT: Render the hook
     const { result, rerender } = renderHook(
       ({ value }) => useDebounce(value, delay),
       { initialProps: { value: 'a' } }
     );
-    
+
     // ACT: Simulate rapid typing by changing value multiple times quickly
     // This is wrapped in act() because it causes state updates
     act(() => {
@@ -134,18 +137,15 @@ describe('useDebounce', () => {
       rerender({ value: 'abcd' });
       rerender({ value: 'abcde' });
     });
-    
+
     // ASSERT: Value should still be the initial value (no updates yet)
     expect(result.current).toBe('a');
-    
-    // ACT: Wait for the debounce delay
-    await waitFor(
-      () => {
-        expect(result.current).toBe('abcde');
-      },
-      { timeout: delay + 100 }
-    );
-    
+
+    // ACT: Fast-forward time by the delay amount
+    act(() => {
+      jest.advanceTimersByTime(delay);
+    });
+
     // ASSERT: Should skip all intermediate values and jump to the final value
     expect(result.current).toBe('abcde');
   });
@@ -158,7 +158,7 @@ describe('useDebounce', () => {
   // HOW IT WORKS:
   // 1. Test with a short delay (100ms)
   // 2. Verify the value updates after that specific delay
-  it('should respect custom delay values', async () => {
+  it('should respect custom delay values', () => {
     // ARRANGE: Use a shorter delay for faster test
     const customDelay = 100;
 
@@ -174,9 +174,9 @@ describe('useDebounce', () => {
     // ASSERT: Should still be old value immediately
     expect(result.current).toBe('initial');
 
-    // ACT: Wait for the custom delay
-    await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, customDelay + 10));
+    // ACT: Fast-forward time by the custom delay
+    act(() => {
+      jest.advanceTimersByTime(customDelay);
     });
 
     // ASSERT: Should be updated now
@@ -189,55 +189,52 @@ describe('useDebounce', () => {
   // WHAT THIS TESTS: The hook should work with any data type
   // WHY IT MATTERS: Debouncing isn't just for strings
   // HOW IT WORKS: Test with numbers, objects, and arrays
-  it('should work with different data types', async () => {
+  it('should work with different data types', () => {
     const delay = 200;
-    
+
     // TEST WITH NUMBERS
     const { result: numberResult, rerender: numberRerender } = renderHook(
       ({ value }) => useDebounce(value, delay),
       { initialProps: { value: 0 } }
     );
-    
+
     numberRerender({ value: 42 });
-    
-    await waitFor(
-      () => {
-        expect(numberResult.current).toBe(42);
-      },
-      { timeout: delay + 100 }
-    );
-    
+
+    act(() => {
+      jest.advanceTimersByTime(delay);
+    });
+
+    expect(numberResult.current).toBe(42);
+
     // TEST WITH OBJECTS
     const { result: objectResult, rerender: objectRerender } = renderHook(
       ({ value }) => useDebounce(value, delay),
       { initialProps: { value: { name: 'John' } } }
     );
-    
+
     const newObject = { name: 'Jane' };
     objectRerender({ value: newObject });
-    
-    await waitFor(
-      () => {
-        expect(objectResult.current).toBe(newObject);
-      },
-      { timeout: delay + 100 }
-    );
-    
+
+    act(() => {
+      jest.advanceTimersByTime(delay);
+    });
+
+    expect(objectResult.current).toBe(newObject);
+
     // TEST WITH ARRAYS
     const { result: arrayResult, rerender: arrayRerender } = renderHook(
       ({ value }) => useDebounce(value, delay),
       { initialProps: { value: [1, 2, 3] } }
     );
-    
+
     const newArray = [4, 5, 6];
     arrayRerender({ value: newArray });
-    
-    await waitFor(
-      () => {
-        expect(arrayResult.current).toBe(newArray);
-      },
-      { timeout: delay + 100 }
-    );
+
+    act(() => {
+      jest.advanceTimersByTime(delay);
+    });
+
+    expect(arrayResult.current).toBe(newArray);
   });
 
   // ==========================================================================
