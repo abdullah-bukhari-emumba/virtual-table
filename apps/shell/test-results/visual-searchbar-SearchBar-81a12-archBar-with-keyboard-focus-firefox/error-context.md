@@ -1,0 +1,114 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e4]:
+      - generic [ref=e5]:
+        - generic [ref=e8]: PT
+        - heading "Patient Virtual Table" [level=1] [ref=e9]
+      - generic [ref=e10]:
+        - link "Patient Table" [ref=e11] [cursor=pointer]:
+          - /url: /
+        - link "Patient Intake Form" [ref=e12] [cursor=pointer]:
+          - /url: /forms/patient-intake
+      - generic [ref=e14]: 📊
+  - generic [ref=e17]:
+    - generic [ref=e18]:
+      - heading "PulseGrid" [level=1] [ref=e19]
+      - paragraph [ref=e20]: Electronic Health Records Management
+    - textbox "Search" [ref=e22]:
+      - /placeholder: Search by name or MRN...
+    - table [ref=e25]:
+      - rowgroup [ref=e26]:
+        - row "MRN Patient Name Last Visit Date↓ Summary" [ref=e27]:
+          - columnheader "MRN" [ref=e28] [cursor=pointer]
+          - columnheader "Patient Name" [ref=e29] [cursor=pointer]
+          - columnheader "Last Visit Date↓" [ref=e30] [cursor=pointer]
+          - columnheader "Summary" [ref=e31]
+      - rowgroup [ref=e32]:
+        - row [ref=e33]:
+          - cell "J93HYWCN" [ref=e34]
+          - cell "Harry Kling" [ref=e35]
+          - cell "2025-10-23" [ref=e36]
+          - cell [ref=e37]:
+            - generic [ref=e38]: Repudiandae cupiditate testimonium amicitia soleo ascisco adficio degenero. Sed capio strenuus. Accendo advoco comis vehemens vigor nobis acceptus terminatio uter delibero. Cupressus creptio uterque abscido rerum cuppedia aut talio atque. Alioqui optio theca delectus. Charisma triduana alveus impedit compello abscido vaco abbas adstringo abduco. Iste sequi crebro creptio amiculum quis vitiosus auxilium. Despecto comminor bonus sublime arbor defluo laudantium viridis. Curso valeo nihil consuasor reiciendis caelum. Cui vapulus asporto demulceo coniuratio. Beatus aegrus audeo decet illum possimus apud teres. Suspendo tersus acerbitas ipsam pauper cerno aeneus asperiores sulum excepturi. Crepusculum theatrum theca. Hic acidus uberrime quis adopto vorago cruciamentum laboriosam odit. Tamisium quae cupio decipio. Avarus depulso occaecati. Terreo aspernatur autem villa. Convoco tenax attonbitus denuncio arguo defetiscor. Comburo thermae aliquam. Uter aggredior campana delego curriculum timor unde. Tot textus asperiores auctus minima minus trado tot. Sono ars appono. Id pecto sed. Incidunt crudelis adhaero ancilla quod. Combibo nulla avarus temperantia depono tego vobis suffoco crur. Thymum arbustum cultellus cursus. Volutabrum unus facere necessitatibus. Demum depraedor crustulum. Correptius solitudo validus. Suppono corpus voluptates apto aliquam trado.
+        - row "VWWKZXMM Elijah Buckridge 2025-10-23 Hic nostrum derelinquo viriliter beatae quod cupio talis." [ref=e39]:
+          - cell "VWWKZXMM" [ref=e40]
+          - cell "Elijah Buckridge" [ref=e41]
+          - cell "2025-10-23" [ref=e42]
+          - cell "Hic nostrum derelinquo viriliter beatae quod cupio talis." [ref=e43]:
+            - generic [ref=e44]: Hic nostrum derelinquo viriliter beatae quod cupio talis.
+        - row "DOYZQ955 Olivia Haag PhD 2025-10-23 Delibero varietas benigne totam admiratio adeptio." [ref=e45]:
+          - cell "DOYZQ955" [ref=e46]
+          - cell "Olivia Haag PhD" [ref=e47]
+          - cell "2025-10-23" [ref=e48]
+          - cell "Delibero varietas benigne totam admiratio adeptio." [ref=e49]:
+            - generic [ref=e50]: Delibero varietas benigne totam admiratio adeptio.
+        - row "HG12BW8X Mr. Lance Bednar-Mohr Sr. 2025-10-23 Titulus cernuus antepono decumbo usque denuncio spero trado calculus." [ref=e51]:
+          - cell "HG12BW8X" [ref=e52]
+          - cell "Mr. Lance Bednar-Mohr Sr." [ref=e53]
+          - cell "2025-10-23" [ref=e54]
+          - cell "Titulus cernuus antepono decumbo usque denuncio spero trado calculus." [ref=e55]:
+            - generic [ref=e56]: Titulus cernuus antepono decumbo usque denuncio spero trado calculus.
+        - row "BELWMS6J Jane Heaney 2025-10-23 Appositus quia arguo accendo vulgo valde. Casus sapiente dolorem arto desidero. Charisma tergo admoveo amita acer crux. Labore conscendo uterque adeptio illum debeo quia spes distinctio sollicito. Unde verus argumentum crur. Aeternus soleo tersus utor sperno caelestis qui adipiscor dolor audax. Arx explicabo virgo claustrum cerno. Ascit blanditiis alii vilicus caute aveho aureus architecto. Vespillo abutor cura ducimus cometes coma canonicus admoneo cotidie deporto." [ref=e57]:
+          - cell "BELWMS6J" [ref=e58]
+          - cell "Jane Heaney" [ref=e59]
+          - cell "2025-10-23" [ref=e60]
+          - cell "Appositus quia arguo accendo vulgo valde. Casus sapiente dolorem arto desidero. Charisma tergo admoveo amita acer crux. Labore conscendo uterque adeptio illum debeo quia spes distinctio sollicito. Unde verus argumentum crur. Aeternus soleo tersus utor sperno caelestis qui adipiscor dolor audax. Arx explicabo virgo claustrum cerno. Ascit blanditiis alii vilicus caute aveho aureus architecto. Vespillo abutor cura ducimus cometes coma canonicus admoneo cotidie deporto." [ref=e61]:
+            - generic [ref=e62]: Appositus quia arguo accendo vulgo valde. Casus sapiente dolorem arto desidero. Charisma tergo admoveo amita acer crux. Labore conscendo uterque adeptio illum debeo quia spes distinctio sollicito. Unde verus argumentum crur. Aeternus soleo tersus utor sperno caelestis qui adipiscor dolor audax. Arx explicabo virgo claustrum cerno. Ascit blanditiis alii vilicus caute aveho aureus architecto. Vespillo abutor cura ducimus cometes coma canonicus admoneo cotidie deporto.
+        - row "O4Z9YS6I Shane Gorczany 2025-10-23 Eligendi demoror aegrotatio voluptate carpo tenax nostrum. Ars asporto corrupti denique mollitia velit atqui blandior adeptio temperantia. Ustilo caritas deleo victoria tergeo concido vomer saepe careo. Cogito thalassinus beatus. Adsidue rem necessitatibus ascit denique stultus alioqui. Textor summisse cursim vereor audeo caelestis alter. Derideo ascit deludo aliqua praesentium amitto civis dolor despecto. Labore defero tego corrigo conatus amoveo demergo tantillus. Vere degero optio vos crapula aiunt." [ref=e63]:
+          - cell "O4Z9YS6I" [ref=e64]
+          - cell "Shane Gorczany" [ref=e65]
+          - cell "2025-10-23" [ref=e66]
+          - cell "Eligendi demoror aegrotatio voluptate carpo tenax nostrum. Ars asporto corrupti denique mollitia velit atqui blandior adeptio temperantia. Ustilo caritas deleo victoria tergeo concido vomer saepe careo. Cogito thalassinus beatus. Adsidue rem necessitatibus ascit denique stultus alioqui. Textor summisse cursim vereor audeo caelestis alter. Derideo ascit deludo aliqua praesentium amitto civis dolor despecto. Labore defero tego corrigo conatus amoveo demergo tantillus. Vere degero optio vos crapula aiunt." [ref=e67]:
+            - generic [ref=e68]: Eligendi demoror aegrotatio voluptate carpo tenax nostrum. Ars asporto corrupti denique mollitia velit atqui blandior adeptio temperantia. Ustilo caritas deleo victoria tergeo concido vomer saepe careo. Cogito thalassinus beatus. Adsidue rem necessitatibus ascit denique stultus alioqui. Textor summisse cursim vereor audeo caelestis alter. Derideo ascit deludo aliqua praesentium amitto civis dolor despecto. Labore defero tego corrigo conatus amoveo demergo tantillus. Vere degero optio vos crapula aiunt.
+        - row "REBWMCT8 Kirk Graham 2025-10-23 Accedo sordeo depereo calcar benevolentia sit comminor. Valens thesaurus sto. Utrimque certe caterva urbanus desolo omnis maxime cura cur inventore." [ref=e69]:
+          - cell "REBWMCT8" [ref=e70]
+          - cell "Kirk Graham" [ref=e71]
+          - cell "2025-10-23" [ref=e72]
+          - cell "Accedo sordeo depereo calcar benevolentia sit comminor. Valens thesaurus sto. Utrimque certe caterva urbanus desolo omnis maxime cura cur inventore." [ref=e73]:
+            - generic [ref=e74]: Accedo sordeo depereo calcar benevolentia sit comminor. Valens thesaurus sto. Utrimque certe caterva urbanus desolo omnis maxime cura cur inventore.
+        - row "METQORSL Cecilia Ebert 2025-10-23 Conforto vigor denuncio quia trucido ars tantum aut paulatim totidem." [ref=e75]:
+          - cell "METQORSL" [ref=e76]
+          - cell "Cecilia Ebert" [ref=e77]
+          - cell "2025-10-23" [ref=e78]
+          - cell "Conforto vigor denuncio quia trucido ars tantum aut paulatim totidem." [ref=e79]:
+            - generic [ref=e80]: Conforto vigor denuncio quia trucido ars tantum aut paulatim totidem.
+        - row "IGLWLNVC Larry Wunsch 2025-10-23 Voro tabella doloribus." [ref=e81]:
+          - cell "IGLWLNVC" [ref=e82]
+          - cell "Larry Wunsch" [ref=e83]
+          - cell "2025-10-23" [ref=e84]
+          - cell "Voro tabella doloribus." [ref=e85]:
+            - generic [ref=e86]: Voro tabella doloribus.
+        - row "9T1F0CQC Cindy Morissette 2025-10-23 Voluntarius succurro carmen." [ref=e87]:
+          - cell "9T1F0CQC" [ref=e88]
+          - cell "Cindy Morissette" [ref=e89]
+          - cell "2025-10-23" [ref=e90]
+          - cell "Voluntarius succurro carmen." [ref=e91]:
+            - generic [ref=e92]: Voluntarius succurro carmen.
+    - generic [ref=e93]:
+      - generic [ref=e95]:
+        - heading "Performance Metrics" [level=3] [ref=e96]
+        - generic [ref=e97]: (Real-time measurements)
+      - generic [ref=e98]:
+        - generic [ref=e99]:
+          - generic [ref=e100]:
+            - generic [ref=e101]: "25"
+            - generic [ref=e102]: FPS (Idle)
+            - generic [ref=e103]: Frames rendered per second
+          - generic [ref=e104]:
+            - generic [ref=e105]: "5990"
+            - generic [ref=e106]: Load Time (ms)
+            - generic [ref=e107]: Initial page load duration
+          - generic [ref=e108]:
+            - generic [ref=e109]: "12"
+            - generic [ref=e110]: Visible Rows
+            - generic [ref=e111]: Rows currently in viewport
+        - generic [ref=e113]:
+          - generic [ref=e115]: "Performance Status: Needs Attention"
+          - generic [ref=e116]: Lightweight tracking - minimal overhead
+  - button "Open Next.js Dev Tools" [ref=e122] [cursor=pointer]:
+    - img [ref=e123]
+  - alert [ref=e127]
+```

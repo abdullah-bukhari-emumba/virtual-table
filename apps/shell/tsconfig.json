@@ -1,0 +1,20 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./*"],
+      "@virtual-table/database": ["../../packages/database/src"],
+      "@virtual-table/types": ["../../packages/types/src"],
+      "@virtual-table/ui": ["../../packages/ui/src"],
+      "@virtual-table/utils": ["../../packages/utils/src"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": ["node_modules"]
+}
+

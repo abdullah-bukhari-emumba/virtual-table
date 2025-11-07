@@ -1,0 +1,24 @@
+{
+  "name": "@virtual-table/database",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "data:generate": "node scripts/generate-data.js",
+    "data:import": "node scripts/import-data.js",
+    "data:reset": "node -e \"const fs = require('fs'); try { fs.unlinkSync('data/patients.db'); } catch(e) {} try { fs.unlinkSync('data/patients.jsonl'); } catch(e) {}\" && npm run data:generate && npm run data:import",
+    "clean": "rm -rf .turbo node_modules"
+  },
+  "dependencies": {
+    "@virtual-table/types": "workspace:*",
+    "better-sqlite3": "^12.4.1",
+    "server-only": "^0.0.1"
+  },
+  "devDependencies": {
+    "@faker-js/faker": "^10.1.0",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^20"
+  }
+}
+
