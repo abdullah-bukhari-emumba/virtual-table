@@ -1,49 +1,39 @@
 {
-  "name": "virtual-table-v2",
-  "version": "0.1.0",
+  "name": "virtual-table-multizone",
+  "version": "1.0.0",
   "private": true,
+  "description": "Next.js Multi-Zone Architecture - Patient Virtual Table & Forms",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
-    "test:integration": "jest --testPathPatterns=__tests__",
-    "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui",
-    "test:e2e:debug": "playwright test --debug",
-    "test:all": "jest && playwright test",
-    "data:generate": "node scripts/generate-data.js",
-    "data:import": "node scripts/import-data.js",
-    "data:reset": "node -e \"const fs = require('fs'); try { fs.unlinkSync('data/patients.db'); } catch(e) {} try { fs.unlinkSync('data/patients.jsonl'); } catch(e) {}\" && npm run data:generate && npm run data:import"
-  },
-  "dependencies": {
-    "@faker-js/faker": "^10.1.0",
-    "better-sqlite3": "^12.4.1",
-    "next": "16.0.0",
-    "react": "19.2.0",
-    "react-dom": "19.2.0",
-    "server-only": "^0.0.1",
-    "yup": "^1.7.1"
+    "dev": "concurrently \"pnpm --filter shell dev\" \"pnpm --filter forms dev\"",
+    "dev:shell": "pnpm --filter shell dev",
+    "dev:forms": "pnpm --filter forms dev",
+    "build": "pnpm --filter shell build && pnpm --filter forms build",
+    "build:shell": "pnpm --filter shell build",
+    "build:forms": "pnpm --filter forms build",
+    "start": "concurrently \"pnpm --filter shell start\" \"pnpm --filter forms start\"",
+    "start:shell": "pnpm --filter shell start",
+    "start:forms": "pnpm --filter forms start",
+    "lint": "pnpm --recursive lint",
+    "test": "pnpm --recursive test",
+    "test:coverage": "pnpm --recursive test:coverage",
+    "test:e2e": "pnpm --filter shell test:e2e",
+    "clean": "pnpm --recursive clean && rm -rf node_modules",
+    "data:generate": "pnpm --filter @virtual-table/database data:generate",
+    "data:import": "pnpm --filter @virtual-table/database data:import",
+    "data:reset": "pnpm --filter @virtual-table/database data:reset"
   },
   "devDependencies": {
-    "@playwright/test": "^1.56.1",
-    "@tailwindcss/postcss": "^4",
-    "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.0",
-    "@testing-library/user-event": "^14.6.1",
-    "@types/better-sqlite3": "^7.6.13",
-    "@types/jest": "^30.0.0",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "16.0.0",
-    "jest": "^30.2.0",
-    "jest-environment-jsdom": "^30.2.0",
-    "tailwindcss": "^4",
-    "typescript": "^5"
-  }
+    "concurrently": "^9.1.2",
+    "turbo": "^2.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@8.15.0"
 }
+

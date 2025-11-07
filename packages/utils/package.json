@@ -1,0 +1,17 @@
+{
+  "name": "@virtual-table/utils",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "clean": "rm -rf .turbo node_modules"
+  },
+  "dependencies": {
+    "react": "19.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19"
+  }
+}
+
