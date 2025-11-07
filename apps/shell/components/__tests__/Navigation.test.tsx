@@ -17,44 +17,36 @@ describe('Navigation Component', () => {
   describe('Rendering', () => {
     it('should render the navigation bar', () => {
       (usePathname as jest.Mock).mockReturnValue('/');
-      
+
       render(<Navigation />);
-      
+
       const nav = screen.getByRole('navigation');
       expect(nav).toBeInTheDocument();
     });
 
     it('should render the default title', () => {
       (usePathname as jest.Mock).mockReturnValue('/');
-      
+
       render(<Navigation />);
-      
+
       expect(screen.getByText('Patient Virtual Table')).toBeInTheDocument();
     });
 
     it('should render custom title when provided', () => {
       (usePathname as jest.Mock).mockReturnValue('/');
-      
-      render(<Navigation title="Custom Title" />);
-      
-      expect(screen.getByText('Custom Title')).toBeInTheDocument();
-    });
 
-    it('should render logo with PT initials', () => {
-      (usePathname as jest.Mock).mockReturnValue('/');
-      
-      render(<Navigation />);
-      
-      expect(screen.getByText('PT')).toBeInTheDocument();
+      render(<Navigation title="Custom Title" />);
+
+      expect(screen.getByText('Custom Title')).toBeInTheDocument();
     });
   });
 
   describe('Navigation Links', () => {
     it('should render Patient Table link', () => {
       (usePathname as jest.Mock).mockReturnValue('/');
-      
+
       render(<Navigation />);
-      
+
       const link = screen.getByRole('link', { name: /Patient Table/i });
       expect(link).toBeInTheDocument();
       expect(link).toHaveAttribute('href', '/');
@@ -62,24 +54,12 @@ describe('Navigation Component', () => {
 
     it('should render Patient Intake Form link', () => {
       (usePathname as jest.Mock).mockReturnValue('/forms/patient-intake');
-      
+
       render(<Navigation />);
-      
+
       const link = screen.getByRole('link', { name: /Patient Intake Form/i });
       expect(link).toBeInTheDocument();
       expect(link).toHaveAttribute('href', '/forms/patient-intake');
-    });
-
-    it('should have correct title attributes for accessibility', () => {
-      (usePathname as jest.Mock).mockReturnValue('/');
-      
-      render(<Navigation />);
-      
-      const tableLink = screen.getByRole('link', { name: /Patient Table/i });
-      expect(tableLink).toHaveAttribute('title', 'View patient records');
-      
-      const formLink = screen.getByRole('link', { name: /Patient Intake Form/i });
-      expect(formLink).toHaveAttribute('title', 'Add new patient');
     });
   });
 
@@ -90,7 +70,8 @@ describe('Navigation Component', () => {
       render(<Navigation />);
 
       const tableLink = screen.getByRole('link', { name: /Patient Table/i });
-      expect(tableLink).toHaveClass('bg-blue-600');
+      expect(tableLink).toHaveClass('text-blue-600');
+      expect(tableLink).toHaveClass('border-b-2');
       expect(tableLink).toHaveAttribute('aria-current', 'page');
     });
 
@@ -100,7 +81,7 @@ describe('Navigation Component', () => {
       render(<Navigation />);
 
       const tableLink = screen.getByRole('link', { name: /Patient Table/i });
-      expect(tableLink).toHaveClass('bg-blue-600');
+      expect(tableLink).toHaveClass('text-blue-600');
       expect(tableLink).toHaveAttribute('aria-current', 'page');
     });
 
@@ -110,7 +91,7 @@ describe('Navigation Component', () => {
       render(<Navigation />);
 
       const formLink = screen.getByRole('link', { name: /Patient Intake Form/i });
-      expect(formLink).toHaveClass('bg-blue-600');
+      expect(formLink).toHaveClass('text-blue-600');
       expect(formLink).toHaveAttribute('aria-current', 'page');
     });
 
@@ -120,7 +101,7 @@ describe('Navigation Component', () => {
       render(<Navigation />);
 
       const formLink = screen.getByRole('link', { name: /Patient Intake Form/i });
-      expect(formLink).toHaveClass('bg-blue-600');
+      expect(formLink).toHaveClass('text-blue-600');
       expect(formLink).toHaveAttribute('aria-current', 'page');
     });
 
@@ -130,8 +111,8 @@ describe('Navigation Component', () => {
       render(<Navigation />);
 
       const tableLink = screen.getByRole('link', { name: /Patient Table/i });
-      expect(tableLink).not.toHaveClass('bg-blue-600');
-      expect(tableLink).toHaveClass('text-slate-300');
+      expect(tableLink).not.toHaveClass('text-blue-600');
+      expect(tableLink).toHaveClass('text-gray-600');
       expect(tableLink).not.toHaveAttribute('aria-current');
     });
 
@@ -141,49 +122,30 @@ describe('Navigation Component', () => {
       render(<Navigation />);
 
       const formLink = screen.getByRole('link', { name: /Patient Intake Form/i });
-      expect(formLink).not.toHaveClass('bg-blue-600');
-      expect(formLink).toHaveClass('text-slate-300');
+      expect(formLink).not.toHaveClass('text-blue-600');
+      expect(formLink).toHaveClass('text-gray-600');
       expect(formLink).not.toHaveAttribute('aria-current');
     });
   });
 
   describe('Styling', () => {
-    it('should have gradient background', () => {
+    it('should have white background', () => {
       (usePathname as jest.Mock).mockReturnValue('/');
 
       render(<Navigation />);
 
       const nav = screen.getByRole('navigation');
-      expect(nav).toHaveClass('bg-gradient-to-r');
+      expect(nav).toHaveClass('bg-white');
     });
 
-    it('should have fixed positioning', () => {
+    it('should have border bottom', () => {
       (usePathname as jest.Mock).mockReturnValue('/');
 
       render(<Navigation />);
 
       const nav = screen.getByRole('navigation');
-      expect(nav).toHaveClass('fixed');
-      expect(nav).toHaveClass('top-0');
-      expect(nav).toHaveClass('z-50');
-    });
-
-    it('should have backdrop blur effect', () => {
-      (usePathname as jest.Mock).mockReturnValue('/');
-
-      render(<Navigation />);
-
-      const nav = screen.getByRole('navigation');
-      expect(nav).toHaveClass('backdrop-blur-md');
-    });
-
-    it('should have shadow styling', () => {
-      (usePathname as jest.Mock).mockReturnValue('/');
-
-      render(<Navigation />);
-
-      const nav = screen.getByRole('navigation');
-      expect(nav).toHaveClass('shadow-lg');
+      expect(nav).toHaveClass('border-b');
+      expect(nav).toHaveClass('border-gray-200');
     });
 
     it('should apply custom className when provided', () => {
@@ -197,30 +159,13 @@ describe('Navigation Component', () => {
   });
 
   describe('Responsive Design', () => {
-    it('should render icons for all navigation links', () => {
+    it('should render navigation links', () => {
       (usePathname as jest.Mock).mockReturnValue('/');
 
       render(<Navigation />);
 
-      // Icons should be visible on all screen sizes
-      const icons = screen.getAllByText(/📊|📋/);
-      expect(icons.length).toBe(2);
-    });
-
-    it('should show table emoji on patient table page', () => {
-      (usePathname as jest.Mock).mockReturnValue('/');
-
-      render(<Navigation />);
-
-      expect(screen.getByText('📊')).toBeInTheDocument();
-    });
-
-    it('should show form emoji on forms page', () => {
-      (usePathname as jest.Mock).mockReturnValue('/forms/patient-intake');
-
-      render(<Navigation />);
-
-      expect(screen.getByText('📋')).toBeInTheDocument();
+      const links = screen.getAllByRole('link');
+      expect(links.length).toBe(2);
     });
   });
 
