@@ -19,6 +19,7 @@
     "start:forms": "pnpm --filter forms start",
     "lint": "pnpm --recursive lint",
     "test": "pnpm --recursive test",
+    "test:all": "pnpm --filter shell test && pnpm --filter forms test && pnpm --filter @virtual-table/database test && pnpm --filter @virtual-table/ui test && pnpm --filter @virtual-table/utils test",
     "test:coverage": "pnpm --recursive test:coverage",
     "test:e2e": "pnpm --filter shell test:e2e",
     "clean": "pnpm --recursive clean && rm -rf node_modules",
