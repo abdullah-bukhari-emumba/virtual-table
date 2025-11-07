@@ -7,6 +7,8 @@ const nextConfig: NextConfig = {
   // Configure server external packages for native modules
   experimental: {
     serverComponentsExternalPackages: ['better-sqlite3'],
+    // Optimize workspace package handling
+    optimizePackageImports: ['@virtual-table/ui', '@virtual-table/types', '@virtual-table/utils', '@virtual-table/database'],
   },
 
   async rewrites() {

@@ -13,6 +13,12 @@ const nextConfig: NextConfig = {
   // independently at its root (http://localhost:3001/) while still being
   // accessible via the shell zone at /forms/* through rewrites
 
+  // Experimental configuration for better monorepo support
+  experimental: {
+    // Optimize workspace package handling
+    optimizePackageImports: ['@virtual-table/ui', '@virtual-table/types'],
+  },
+
   // Rewrites for asset handling when accessed via shell zone
   async rewrites() {
     return {
